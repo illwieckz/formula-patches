@@ -1,0 +1,228 @@
+From 281346002fe3e77f69048e4aadbeffb3d8dc9f41 Mon Sep 17 00:00:00 2001
+From: Jacob Ole Juul Kolding <dacobi juvul com>
+Date: Sat, 22 May 2010 21:14:40 +0200
+Subject: patch-gdk-quartz-prevent-toplevel-fill.diff
+
+patch by Jacob Ole Juul Kolding <dacobi@juvul.com>
+replayed by Thomas Debesse <dev@illwieckz.net>
+
+see https://mail.gnome.org/archives/gtk-devel-list/2010-May/msg00177.html
+---
+ gdk/gdkglwindow.c                |  3 ++-
+ gdk/gdkglwindow.h                |  9 +++++++
+ gdk/quartz/gdkglcontext-quartz.c |  8 +++++-
+ gdk/quartz/gdkglwindow-quartz.c  | 46 +++++++++++++++++++++++++-------
+ gdk/quartz/gdkglwindow-quartz.h  |  5 ++++
+ gtk/gtkglwidget.c                |  1 +
+ 6 files changed, 61 insertions(+), 11 deletions(-)
+
+diff --git a/gdk/gdkglwindow.c b/gdk/gdkglwindow.c
+index 05eb44b..8306354 100644
+--- a/gdk/gdkglwindow.c
++++ b/gdk/gdkglwindow.c
+@@ -704,6 +704,7 @@ static GQuark quark_gl_window = 0;
+  **/
+ GdkGLWindow *
+ gdk_window_set_gl_capability (GdkWindow   *window,
++                              myGtkAllocation *allocation,
+                               GdkGLConfig *glconfig,
+                               const int   *attrib_list)
+ {
+@@ -726,7 +727,7 @@ gdk_window_set_gl_capability (GdkWindow   *window,
+    * Create GdkGLWindow
+    */
+ 
+-  glwindow = gdk_gl_window_new (glconfig, window, attrib_list);
++  glwindow = gdk_gl_window_new (glconfig, window, allocation, attrib_list);
+   if (glwindow == NULL)
+     {
+       g_warning ("cannot create GdkGLWindow\n");
+diff --git a/gdk/gdkglwindow.h b/gdk/gdkglwindow.h
+index 9e68659..efd6469 100644
+--- a/gdk/gdkglwindow.h
++++ b/gdk/gdkglwindow.h
+@@ -24,6 +24,13 @@
+ 
+ #include <gdk/gdkwindow.h>
+ 
++typedef struct _GtkAllocation {
++  gint x;
++  gint y;
++  gint width;
++  gint height;
++} myGtkAllocation;
++
+ G_BEGIN_DECLS
+ 
+ typedef struct _GdkGLWindowClass GdkGLWindowClass;
+@@ -55,6 +62,7 @@ GType        gdk_gl_window_get_type         (void);
+  */
+ GdkGLWindow *gdk_gl_window_new              (GdkGLConfig *glconfig,
+                                              GdkWindow   *window,
++                                             myGtkAllocation *viewport,
+                                              const int   *attrib_list);
+ 
+ void         gdk_gl_window_destroy          (GdkGLWindow *glwindow);
+@@ -66,6 +74,7 @@ GdkWindow   *gdk_gl_window_get_window       (GdkGLWindow *glwindow);
+  */
+ 
+ GdkGLWindow *gdk_window_set_gl_capability   (GdkWindow   *window,
++                                             myGtkAllocation *allocation,
+                                              GdkGLConfig *glconfig,
+                                              const int   *attrib_list);
+ 
+diff --git a/gdk/quartz/gdkglcontext-quartz.c b/gdk/quartz/gdkglcontext-quartz.c
+index 0c6a159..60251d9 100644
+--- a/gdk/quartz/gdkglcontext-quartz.c
++++ b/gdk/quartz/gdkglcontext-quartz.c
+@@ -291,6 +291,7 @@ _gdk_quartz_gl_context_window_new (GdkGLDrawable *gldrawable,
+ 	GdkGLContextImplQuartz *share_impl = NULL;
+ 	NSOpenGLContext *quartzContext;
+ 	NSOpenGLPixelFormatAttribute attribs[] = {0};
++	NSOpenGLView *quartzOGLView;
+ 	NSView *quartzView;
+ 	GDK_GL_NOTE_FUNC_PRIVATE ();
+ 	NSOpenGLPixelFormat *quartzPixelFormat;
+@@ -318,7 +319,12 @@ _gdk_quartz_gl_context_window_new (GdkGLDrawable *gldrawable,
+ 	if(GDK_IS_GL_WINDOW_IMPL_QUARTZ(gldrawable))
+ 	{
+ 	GDK_GL_WINDOW_IMPL_QUARTZ (gldrawable)->quartzContext = quartzContext;
+-	quartzView = GDK_GL_WINDOW_IMPL_QUARTZ (gldrawable)->quartzView;
++	quartzView = GDK_GL_WINDOW_IMPL_QUARTZ (gldrawable)->quartzView;		
++	quartzOGLView = GDK_GL_WINDOW_IMPL_QUARTZ (gldrawable)->quartzOGLView;
++ 
++	[quartzOGLView setOpenGLContext:quartzContext];
++	[quartzContext setView:quartzOGLView];
++
+ 	[[NSNotificationCenter defaultCenter] 
+ 		 addObserver:quartzContext
+ 		 selector: @selector(update)
+diff --git a/gdk/quartz/gdkglwindow-quartz.c b/gdk/quartz/gdkglwindow-quartz.c
+index 377a924..d9be0ae 100644
+--- a/gdk/quartz/gdkglwindow-quartz.c
++++ b/gdk/quartz/gdkglwindow-quartz.c
+@@ -116,23 +116,33 @@ gdk_gl_window_impl_quartz_gl_drawable_interface_init (GdkGLDrawableClass *iface)
+ 	iface->get_size             = _gdk_gl_window_get_size;
+ }
+ 
++NSOpenGLView *gdk_quartz_window_nsoglview_new(NSView *myView, NSOpenGLPixelFormat *myFormat) {
++	NSOpenGLView *myOGLView;
++	myOGLView = [[NSOpenGLView alloc] initWithFrame:NSZeroRect pixelFormat:myFormat];
++	[myView addSubview:myOGLView];
++	return myOGLView;
++}
+ 
+ GdkGLWindow *
+ gdk_gl_window_new (GdkGLConfig *glconfig,
+                    GdkWindow   *window,
++                   myGtkAllocation *allocation,
+                    const int   *attrib_list)
+ {
+ 	GdkGLWindow *glwindow;
+ 	GdkGLWindowImplQuartz *impl;
+ 	NSView *quartzView;
++	NSOpenGLView *quartzOGLView;
+ 	
+ 	GDK_GL_NOTE_FUNC ();
+ 	
+ 	g_return_val_if_fail (GDK_IS_GL_CONFIG_IMPL_QUARTZ (glconfig), NULL);
+ 	g_return_val_if_fail (GDK_IS_WINDOW (window), NULL);
+-	
+-	quartzView = gdk_quartz_window_get_nsview(window);
+ 
++	GdkGLConfigImplQuartz *glQuartzConfig = GDK_GL_CONFIG_IMPL_QUARTZ(glconfig) ;
++
++	quartzView = gdk_quartz_window_get_nsview(window);
++	quartzOGLView = gdk_quartz_window_nsoglview_new(quartzView, glQuartzConfig->quartzPixelFormat);
+ 	
+ 	glwindow = g_object_new (GDK_TYPE_GL_WINDOW_IMPL_QUARTZ, NULL);
+ 	impl = GDK_GL_WINDOW_IMPL_QUARTZ (glwindow);
+@@ -141,12 +151,13 @@ gdk_gl_window_new (GdkGLConfig *glconfig,
+ 	g_object_add_weak_pointer (G_OBJECT (glwindow->drawable),
+ 							   (gpointer *) &(glwindow->drawable));
+ 	
+-	
+ 	impl->glconfig = glconfig;
+ 	g_object_ref (G_OBJECT (impl->glconfig));
+-	
++
++	impl->viewSize = allocation;	
+ 	impl->quartzView = quartzView;
+-	
++	impl->quartzOGLView = quartzOGLView;	
++
+ 	impl->is_destroyed = FALSE;
+ 	
+ 	return glwindow;
+@@ -181,11 +192,28 @@ static gboolean      gdk_gl_window_impl_quartz_gl_begin            (GdkGLDrawabl
+ 																   GdkGLContext  *glcontext)
+ {
+ 	NSOpenGLContext *quartzContext = GDK_GL_CONTEXT_IMPL_QUARTZ(glcontext)->quartzContext; 
+-	NSView			*view = GDK_GL_WINDOW_IMPL_QUARTZ (draw)->quartzView;
+-	gboolean		ret=gdk_gl_window_impl_quartz_make_context_current (draw, read, glcontext);
++	NSOpenGLView			*view = GDK_GL_WINDOW_IMPL_QUARTZ (draw)->quartzOGLView;
++	
++	myGtkAllocation *oglViewSize = GDK_GL_WINDOW_IMPL_QUARTZ (draw)->viewSize;
++	myGtkAllocation	*myCurView = &(GDK_GL_WINDOW_IMPL_QUARTZ (draw)->currentView);
++	
++	if((oglViewSize->x != myCurView->x) || (oglViewSize->y != myCurView->y) || 
++	   (oglViewSize->width != myCurView->width) || (oglViewSize->height != myCurView->height)) {
++	   	
++	   myCurView->x = oglViewSize->x;
++           myCurView->y = oglViewSize->y;
++           myCurView->width = oglViewSize->width;
++           myCurView->height = oglViewSize->height;
++
++           NSRect myOGLView = NSMakeRect(oglViewSize->x, oglViewSize->y, oglViewSize->width, oglViewSize->height);
++           [view setFrame:myOGLView];
++	}
++	
++	gboolean ret=gdk_gl_window_impl_quartz_make_context_current (draw, read, glcontext);
+ 	if (([quartzContext view] != view) && ![view isHidden]) {
+-        [quartzContext setView:view];
+-    }
++           [quartzContext setView:view];
++    	}
++	
+ 	return ret;
+ }
+ 
+diff --git a/gdk/quartz/gdkglwindow-quartz.h b/gdk/quartz/gdkglwindow-quartz.h
+index 9b664ee..ab4bbd4 100644
+--- a/gdk/quartz/gdkglwindow-quartz.h
++++ b/gdk/quartz/gdkglwindow-quartz.h
+@@ -4,6 +4,8 @@
+ #include <gdk/gdkglwindow.h>
+ #include <gdk/quartz/gdkglquartz.h>
+ 
++NSOpenGLView *gdk_quartz_window_nsoglview_new(NSView *myView, NSOpenGLPixelFormat *myFormat);
++
+ G_BEGIN_DECLS
+ 										     
+ typedef struct _GdkGLWindowImplQuartz      GdkGLWindowImplQuartz;
+@@ -21,7 +23,10 @@ typedef struct _GdkGLWindowImplQuartz      GdkGLWindowImplQuartz;
+ 		GdkGLWindow parent_instance;
+ 		
+ 		NSView				*quartzView;
++		NSOpenGLView		*quartzOGLView;
+ 		NSOpenGLContext		*quartzContext;
++		myGtkAllocation		*viewSize;		
++		myGtkAllocation		currentView;
+ 		
+ 		GdkGLConfig *glconfig;
+ 		
+diff --git a/gtk/gtkglwidget.c b/gtk/gtkglwidget.c
+index 2a31c5a..8dcc3d7 100644
+--- a/gtk/gtkglwidget.c
++++ b/gtk/gtkglwidget.c
+@@ -80,6 +80,7 @@ gtk_gl_widget_realize (GtkWidget       *widget,
+   if (!gdk_window_is_gl_capable (widget->window))
+     {
+       glwindow = gdk_window_set_gl_capability (widget->window,
++                                               ((myGtkAllocation*)&(widget->allocation)),
+                                                private->glconfig,
+                                                NULL);
+       if (glwindow == NULL)
+-- 
+2.20.1
+

@@ -1,0 +1,2736 @@
+From 770452f0feb0e290471e6f4191726fc26e242183 Mon Sep 17 00:00:00 2001
+From: Thomas Debesse <dev@illwieckz.net>
+Date: Mon, 3 Jun 2019 03:19:29 +0200
+Subject: patch-configure-no-embedded-tbz.diff
+
+delete base64-embedded quartz.tbz from configure
+extract quartz.tbz
+delete useless temporary files
+---
+ configure                         | 306 ----------------
+ gdk/quartz/Makefile.am            |  52 +++
+ gdk/quartz/Makefile.in            | 580 ++++++++++++++++++++++++++++++
+ gdk/quartz/gdkglconfig-quartz.c   | 306 ++++++++++++++++
+ gdk/quartz/gdkglconfig-quartz.h   |  42 +++
+ gdk/quartz/gdkglcontext-quartz.c  | 363 +++++++++++++++++++
+ gdk/quartz/gdkglcontext-quartz.h  |  44 +++
+ gdk/quartz/gdkgldrawable-quartz.c |  16 +
+ gdk/quartz/gdkglfont-quartz.c     |  22 ++
+ gdk/quartz/gdkglpixmap-quartz.c   | 305 ++++++++++++++++
+ gdk/quartz/gdkglpixmap-quartz.h   |  49 +++
+ gdk/quartz/gdkglprivate-quartz.h  |  26 ++
+ gdk/quartz/gdkglquartz.h          |   9 +
+ gdk/quartz/gdkglquery-quartz.c    | 215 +++++++++++
+ gdk/quartz/gdkglwindow-quartz.c   | 204 +++++++++++
+ gdk/quartz/gdkglwindow-quartz.h   |  41 +++
+ 16 files changed, 2274 insertions(+), 306 deletions(-)
+ create mode 100644 gdk/quartz/Makefile.am
+ create mode 100644 gdk/quartz/Makefile.in
+ create mode 100644 gdk/quartz/gdkglconfig-quartz.c
+ create mode 100644 gdk/quartz/gdkglconfig-quartz.h
+ create mode 100644 gdk/quartz/gdkglcontext-quartz.c
+ create mode 100644 gdk/quartz/gdkglcontext-quartz.h
+ create mode 100644 gdk/quartz/gdkgldrawable-quartz.c
+ create mode 100644 gdk/quartz/gdkglfont-quartz.c
+ create mode 100644 gdk/quartz/gdkglpixmap-quartz.c
+ create mode 100644 gdk/quartz/gdkglpixmap-quartz.h
+ create mode 100644 gdk/quartz/gdkglprivate-quartz.h
+ create mode 100644 gdk/quartz/gdkglquartz.h
+ create mode 100644 gdk/quartz/gdkglquery-quartz.c
+ create mode 100644 gdk/quartz/gdkglwindow-quartz.c
+ create mode 100644 gdk/quartz/gdkglwindow-quartz.h
+
+diff --git a/configure b/configure
+index 4da82b0..1af03cf 100755
+--- a/configure
++++ b/configure
+@@ -12,312 +12,6 @@
+ ## M4sh Initialization.  ##
+ ## --------------------- ##
+ 
+-cd gdk
+-QUARTZ_SUBFOLDER=quartz
+-if test -d $QUARTZ_SUBFOLDER
+-then
+-	echo "${QUARTZ_SUBFOLDER} folder already exists";
+-else
+-QUARTZ_TBZ=${QUARTZ_SUBFOLDER}.tbz
+-BASE64_FILE=${QUARTZ_TBZ}.txt
+-	echo "extracting quartz to ${BASE64_FILE}"
+-cat << EOT > ${BASE64_FILE}
+-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
+-Qu4qgn/8XckU4UJAR7qZ1A==
+-EOT
+-openssl base64 -d -in ${BASE64_FILE} -out ${QUARTZ_TBZ}
+-rm ${BASE64_FILE} 
+-tar -xvjf ${QUARTZ_TBZ}
+-rm ${QUARTZ_TBZ}
+-fi
+-cd ..
+-
+ # Be more Bourne compatible
+ DUALCASE=1; export DUALCASE # for MKS sh
+ if test -n "${ZSH_VERSION+set}" && (emulate sh) >/dev/null 2>&1; then
+diff --git a/gdk/quartz/Makefile.am b/gdk/quartz/Makefile.am
+new file mode 100644
+index 0000000..b82f447
+--- /dev/null
++++ b/gdk/quartz/Makefile.am
+@@ -0,0 +1,52 @@
++## -*- Makefile -*-
++## Makefile.am for gtkglext/gdk/quartz
++
++AM_CPPFLAGS = \
++	-ObjC	-lobjc	\
++	-DG_LOG_DOMAIN=\"GdkGLExt\"	\
++	-DGDK_GL_COMPILATION		\
++	-DINSIDE_GDK_GL_QUARTZ		\
++	-I$(top_srcdir)			\
++	-I$(top_srcdir)/gdk		\
++	-I$(top_builddir)/gdk		\
++	$(GTKGLEXT_DEBUG_FLAGS)		\
++	$(GDKGLEXT_DEP_CFLAGS)		\
++        $(GDKGLEXT_WIN_EXTRA_DEFS)	\
++	-DG_DISABLE_DEPRECATED		\
++	-DGDK_DISABLE_DEPRECATED	\
++	-DGDK_PIXBUF_DISABLE_DEPRECATED
++
++LDADDS = \
++	$(GDKGLEXT_DEP_LIBS)
++
++gdkglext_quartz_public_h_sources = 
++gdkglext_quartz_private_h_sources = \
++	gdkglconfig-quartz.h	\
++	gdkglcontext-quartz.h	\
++	gdkglpixmap-quartz.h	\
++	gdkglwindow-quartz.h	\
++	gdkglprivate-quartz.h
++
++gdkglext_quartz_c_sources = \
++	gdkglquery-quartz.c	\
++	gdkglconfig-quartz.c	\
++	gdkglcontext-quartz.c	\
++	gdkgldrawable-quartz.c	\
++	gdkglpixmap-quartz.c	\
++	gdkglwindow-quartz.c	\
++	gdkglfont-quartz.c	
++
++gdkglext_quartz_headers = \
++	$(gdkglext_quartz_public_h_sources)
++
++gdkglext_quartz_sources = \
++	$(gdkglext_quartz_private_h_sources)	\
++	$(gdkglext_quartz_c_sources)
++
++gdkglextquartzincludedir = $(includedir)/gtkglext-@GTKGLEXT_API_VERSION@/gdk/quartz
++gdkglextquartzinclude_HEADERS = $(gdkglext_quartz_headers)
++
++noinst_LTLIBRARIES = libgdkglext-quartz.la
++
++libgdkglext_quartz_la_SOURCES = $(gdkglext_quartz_sources)
++
+diff --git a/gdk/quartz/Makefile.in b/gdk/quartz/Makefile.in
+new file mode 100644
+index 0000000..af5c81c
+--- /dev/null
++++ b/gdk/quartz/Makefile.in
+@@ -0,0 +1,580 @@
++# Makefile.in generated by automake 1.10.1 from Makefile.am.
++# @configure_input@
++
++# Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
++# 2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
++# This Makefile.in is free software; the Free Software Foundation
++# gives unlimited permission to copy and/or distribute it,
++# with or without modifications, as long as this notice is preserved.
++
++# This program is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
++# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
++# PARTICULAR PURPOSE.
++
++@SET_MAKE@
++
++
++VPATH = @srcdir@
++pkgdatadir = $(datadir)/@PACKAGE@
++pkglibdir = $(libdir)/@PACKAGE@
++pkgincludedir = $(includedir)/@PACKAGE@
++am__cd = CDPATH="$${ZSH_VERSION+.}$(PATH_SEPARATOR)" && cd
++install_sh_DATA = $(install_sh) -c -m 644
++install_sh_PROGRAM = $(install_sh) -c
++install_sh_SCRIPT = $(install_sh) -c
++INSTALL_HEADER = $(INSTALL_DATA)
++transform = $(program_transform_name)
++NORMAL_INSTALL = :
++PRE_INSTALL = :
++POST_INSTALL = :
++NORMAL_UNINSTALL = :
++PRE_UNINSTALL = :
++POST_UNINSTALL = :
++build_triplet = @build@
++host_triplet = @host@
++subdir = gdk/quartz
++DIST_COMMON = $(gdkglextquartzinclude_HEADERS) $(srcdir)/Makefile.am \
++	$(srcdir)/Makefile.in
++ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
++am__aclocal_m4_deps = $(top_srcdir)/configure.ac
++am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
++	$(ACLOCAL_M4)
++mkinstalldirs = $(install_sh) -d
++CONFIG_HEADER = $(top_builddir)/config.h
++CONFIG_CLEAN_FILES =
++LTLIBRARIES = $(noinst_LTLIBRARIES)
++libgdkglext_quartz_la_LIBADD =
++am__objects_1 =
++am__objects_2 = gdkglquery-quartz.lo gdkglconfig-quartz.lo \
++	gdkglcontext-quartz.lo gdkgldrawable-quartz.lo \
++	gdkglpixmap-quartz.lo gdkglwindow-quartz.lo \
++	gdkglfont-quartz.lo
++am__objects_3 = $(am__objects_1) $(am__objects_2)
++am_libgdkglext_quartz_la_OBJECTS = $(am__objects_3)
++libgdkglext_quartz_la_OBJECTS = $(am_libgdkglext_quartz_la_OBJECTS)
++DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
++depcomp = $(SHELL) $(top_srcdir)/depcomp
++am__depfiles_maybe = depfiles
++COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
++	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
++LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
++	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
++	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
++CCLD = $(CC)
++LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
++	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
++	$(LDFLAGS) -o $@
++SOURCES = $(libgdkglext_quartz_la_SOURCES)
++DIST_SOURCES = $(libgdkglext_quartz_la_SOURCES)
++am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
++am__vpath_adj = case $$p in \
++    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
++    *) f=$$p;; \
++  esac;
++am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
++am__installdirs = "$(DESTDIR)$(gdkglextquartzincludedir)"
++gdkglextquartzincludeHEADERS_INSTALL = $(INSTALL_HEADER)
++HEADERS = $(gdkglextquartzinclude_HEADERS)
++ETAGS = etags
++CTAGS = ctags
++DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
++ACLOCAL = @ACLOCAL@
++AMTAR = @AMTAR@
++API_MI = @API_MI@
++API_MJ = @API_MJ@
++AR = @AR@
++AS = @AS@
++AUTOCONF = @AUTOCONF@
++AUTOHEADER = @AUTOHEADER@
++AUTOMAKE = @AUTOMAKE@
++AWK = @AWK@
++BASE_DEPENDENCIES_CFLAGS = @BASE_DEPENDENCIES_CFLAGS@
++BASE_DEPENDENCIES_LIBS = @BASE_DEPENDENCIES_LIBS@
++CC = @CC@
++CCDEPMODE = @CCDEPMODE@
++CFLAGS = @CFLAGS@
++CPP = @CPP@
++CPPFLAGS = @CPPFLAGS@
++CXX = @CXX@
++CXXCPP = @CXXCPP@
++CXXDEPMODE = @CXXDEPMODE@
++CXXFLAGS = @CXXFLAGS@
++CYGPATH_W = @CYGPATH_W@
++DEFS = @DEFS@
++DEPDIR = @DEPDIR@
++DLLTOOL = @DLLTOOL@
++DSYMUTIL = @DSYMUTIL@
++ECHO = @ECHO@
++ECHO_C = @ECHO_C@
++ECHO_N = @ECHO_N@
++ECHO_T = @ECHO_T@
++EGREP = @EGREP@
++EXAMPLES_DEP_CFLAGS = @EXAMPLES_DEP_CFLAGS@
++EXEEXT = @EXEEXT@
++F77 = @F77@
++FFLAGS = @FFLAGS@
++GDKGLEXT_DEP_CFLAGS = @GDKGLEXT_DEP_CFLAGS@
++GDKGLEXT_DEP_LIBS = @GDKGLEXT_DEP_LIBS@
++GDKGLEXT_EXTRA_CFLAGS = @GDKGLEXT_EXTRA_CFLAGS@
++GDKGLEXT_EXTRA_LIBS = @GDKGLEXT_EXTRA_LIBS@
++GDKGLEXT_MULTIHEAD_SUPPORT = @GDKGLEXT_MULTIHEAD_SUPPORT@
++GDKGLEXT_PACKAGES = @GDKGLEXT_PACKAGES@
++GDKGLEXT_WIN_CFLAGS = @GDKGLEXT_WIN_CFLAGS@
++GDKGLEXT_WIN_EXTRA_DEFS = @GDKGLEXT_WIN_EXTRA_DEFS@
++GDKGLEXT_WIN_LIBS = @GDKGLEXT_WIN_LIBS@
++GL_CFLAGS = @GL_CFLAGS@
++GL_LIBS = @GL_LIBS@
++GREP = @GREP@
++GTKDOC = @GTKDOC@
++GTKGLEXT_API_MAJOR_VERSION = @GTKGLEXT_API_MAJOR_VERSION@
++GTKGLEXT_API_MINOR_VERSION = @GTKGLEXT_API_MINOR_VERSION@
++GTKGLEXT_API_VERSION = @GTKGLEXT_API_VERSION@
++GTKGLEXT_BINARY_AGE = @GTKGLEXT_BINARY_AGE@
++GTKGLEXT_DEBUG_FLAGS = @GTKGLEXT_DEBUG_FLAGS@
++GTKGLEXT_DEP_CFLAGS = @GTKGLEXT_DEP_CFLAGS@
++GTKGLEXT_DEP_LIBS = @GTKGLEXT_DEP_LIBS@
++GTKGLEXT_DEP_LIBS_WITH_PANGOFT2 = @GTKGLEXT_DEP_LIBS_WITH_PANGOFT2@
++GTKGLEXT_EXTRA_CFLAGS = @GTKGLEXT_EXTRA_CFLAGS@
++GTKGLEXT_EXTRA_LIBS = @GTKGLEXT_EXTRA_LIBS@
++GTKGLEXT_INTERFACE_AGE = @GTKGLEXT_INTERFACE_AGE@
++GTKGLEXT_MAJOR_VERSION = @GTKGLEXT_MAJOR_VERSION@
++GTKGLEXT_MICRO_VERSION = @GTKGLEXT_MICRO_VERSION@
++GTKGLEXT_MINOR_VERSION = @GTKGLEXT_MINOR_VERSION@
++GTKGLEXT_PACKAGES = @GTKGLEXT_PACKAGES@
++GTKGLEXT_VERSION = @GTKGLEXT_VERSION@
++HTML_DIR = @HTML_DIR@
++INSTALL = @INSTALL@
++INSTALL_DATA = @INSTALL_DATA@
++INSTALL_PROGRAM = @INSTALL_PROGRAM@
++INSTALL_SCRIPT = @INSTALL_SCRIPT@
++INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
++LDFLAGS = @LDFLAGS@
++LIBOBJS = @LIBOBJS@
++LIBS = @LIBS@
++LIBTOOL = @LIBTOOL@
++LIBTOOL_EXPORT_OPTIONS = @LIBTOOL_EXPORT_OPTIONS@
++LN_S = @LN_S@
++LTLIBOBJS = @LTLIBOBJS@
++LT_AGE = @LT_AGE@
++LT_CURRENT = @LT_CURRENT@
++LT_CURRENT_MINUS_AGE = @LT_CURRENT_MINUS_AGE@
++LT_RELEASE = @LT_RELEASE@
++LT_REVISION = @LT_REVISION@
++MAINT = @MAINT@
++MAKEINFO = @MAKEINFO@
++MATH_LIB = @MATH_LIB@
++MKDIR_P = @MKDIR_P@
++NMEDIT = @NMEDIT@
++OBJDUMP = @OBJDUMP@
++OBJEXT = @OBJEXT@
++PACKAGE = @PACKAGE@
++PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
++PACKAGE_NAME = @PACKAGE_NAME@
++PACKAGE_STRING = @PACKAGE_STRING@
++PACKAGE_TARNAME = @PACKAGE_TARNAME@
++PACKAGE_VERSION = @PACKAGE_VERSION@
++PATH_SEPARATOR = @PATH_SEPARATOR@
++PERL = @PERL@
++PKG_CONFIG = @PKG_CONFIG@
++RANLIB = @RANLIB@
++REBUILD = @REBUILD@
++SED = @SED@
++SET_MAKE = @SET_MAKE@
++SHELL = @SHELL@
++STRIP = @STRIP@
++VERSION = @VERSION@
++WINDOWING_CFLAGS = @WINDOWING_CFLAGS@
++WINDOWING_LIBS = @WINDOWING_LIBS@
++XMKMF = @XMKMF@
++X_CFLAGS = @X_CFLAGS@
++X_EXTRA_LIBS = @X_EXTRA_LIBS@
++X_LIBS = @X_LIBS@
++X_PRE_LIBS = @X_PRE_LIBS@
++abs_builddir = @abs_builddir@
++abs_srcdir = @abs_srcdir@
++abs_top_builddir = @abs_top_builddir@
++abs_top_srcdir = @abs_top_srcdir@
++ac_ct_CC = @ac_ct_CC@
++ac_ct_CXX = @ac_ct_CXX@
++ac_ct_F77 = @ac_ct_F77@
++am__include = @am__include@
++am__leading_dot = @am__leading_dot@
++am__quote = @am__quote@
++am__tar = @am__tar@
++am__untar = @am__untar@
++bindir = @bindir@
++build = @build@
++build_alias = @build_alias@
++build_cpu = @build_cpu@
++build_os = @build_os@
++build_vendor = @build_vendor@
++builddir = @builddir@
++datadir = @datadir@
++datarootdir = @datarootdir@
++docdir = @docdir@
++dvidir = @dvidir@
++exec_prefix = @exec_prefix@
++gdkglext_targetlib = @gdkglext_targetlib@
++gdktarget = @gdktarget@
++gtkglext_targetlib = @gtkglext_targetlib@
++host = @host@
++host_alias = @host_alias@
++host_cpu = @host_cpu@
++host_os = @host_os@
++host_vendor = @host_vendor@
++htmldir = @htmldir@
++includedir = @includedir@
++infodir = @infodir@
++install_sh = @install_sh@
++libdir = @libdir@
++libexecdir = @libexecdir@
++localedir = @localedir@
++localstatedir = @localstatedir@
++mandir = @mandir@
++mkdir_p = @mkdir_p@
++ms_librarian = @ms_librarian@
++oldincludedir = @oldincludedir@
++pdfdir = @pdfdir@
++prefix = @prefix@
++program_transform_name = @program_transform_name@
++psdir = @psdir@
++sbindir = @sbindir@
++sharedstatedir = @sharedstatedir@
++srcdir = @srcdir@
++sysconfdir = @sysconfdir@
++target_alias = @target_alias@
++top_builddir = @top_builddir@
++top_srcdir = @top_srcdir@
++AM_CPPFLAGS = \
++	-ObjC	-lobjc	\
++	-DG_LOG_DOMAIN=\"GdkGLExt\"	\
++	-DGDK_GL_COMPILATION		\
++	-DINSIDE_GDK_GL_QUARTZ		\
++	-I$(top_srcdir)			\
++	-I$(top_srcdir)/gdk		\
++	-I$(top_builddir)/gdk		\
++	$(GTKGLEXT_DEBUG_FLAGS)		\
++	$(GDKGLEXT_DEP_CFLAGS)		\
++        $(GDKGLEXT_WIN_EXTRA_DEFS)	\
++	-DG_DISABLE_DEPRECATED		\
++	-DGDK_DISABLE_DEPRECATED	\
++	-DGDK_PIXBUF_DISABLE_DEPRECATED
++
++LDADDS = \
++	$(GDKGLEXT_DEP_LIBS)
++
++gdkglext_quartz_public_h_sources = 
++gdkglext_quartz_private_h_sources = \
++	gdkglconfig-quartz.h	\
++	gdkglcontext-quartz.h	\
++	gdkglpixmap-quartz.h	\
++	gdkglwindow-quartz.h	\
++	gdkglprivate-quartz.h
++
++gdkglext_quartz_c_sources = \
++	gdkglquery-quartz.c	\
++	gdkglconfig-quartz.c	\
++	gdkglcontext-quartz.c	\
++	gdkgldrawable-quartz.c	\
++	gdkglpixmap-quartz.c	\
++	gdkglwindow-quartz.c	\
++	gdkglfont-quartz.c	
++
++gdkglext_quartz_headers = \
++	$(gdkglext_quartz_public_h_sources)
++
++gdkglext_quartz_sources = \
++	$(gdkglext_quartz_private_h_sources)	\
++	$(gdkglext_quartz_c_sources)
++
++gdkglextquartzincludedir = $(includedir)/gtkglext-@GTKGLEXT_API_VERSION@/gdk/quartz
++gdkglextquartzinclude_HEADERS = $(gdkglext_quartz_headers)
++noinst_LTLIBRARIES = libgdkglext-quartz.la
++libgdkglext_quartz_la_SOURCES = $(gdkglext_quartz_sources)
++all: all-am
++
++.SUFFIXES:
++.SUFFIXES: .c .lo .o .obj
++$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
++	@for dep in $?; do \
++	  case '$(am__configure_deps)' in \
++	    *$$dep*) \
++	      cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh \
++		&& exit 0; \
++	      exit 1;; \
++	  esac; \
++	done; \
++	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  gdk/quartz/Makefile'; \
++	cd $(top_srcdir) && \
++	  $(AUTOMAKE) --gnu  gdk/quartz/Makefile
++.PRECIOUS: Makefile
++Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
++	@case '$?' in \
++	  *config.status*) \
++	    cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh;; \
++	  *) \
++	    echo ' cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe)'; \
++	    cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe);; \
++	esac;
++
++$(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
++	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
++
++$(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
++	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
++$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
++	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
++
++clean-noinstLTLIBRARIES:
++	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
++	@list='$(noinst_LTLIBRARIES)'; for p in $$list; do \
++	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
++	  test "$$dir" != "$$p" || dir=.; \
++	  echo "rm -f \"$${dir}/so_locations\""; \
++	  rm -f "$${dir}/so_locations"; \
++	done
++libgdkglext-quartz.la: $(libgdkglext_quartz_la_OBJECTS) $(libgdkglext_quartz_la_DEPENDENCIES) 
++	$(LINK)  $(libgdkglext_quartz_la_OBJECTS) $(libgdkglext_quartz_la_LIBADD) $(LIBS)
++
++mostlyclean-compile:
++	-rm -f *.$(OBJEXT)
++
++distclean-compile:
++	-rm -f *.tab.c
++
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdkglconfig-quartz.Plo@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdkglcontext-quartz.Plo@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdkgldrawable-quartz.Plo@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdkglfont-quartz.Plo@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdkglpixmap-quartz.Plo@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdkglquery-quartz.Plo@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdkglwindow-quartz.Plo@am__quote@
++
++.c.o:
++@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
++@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
++@am__fastdepCC_FALSE@	$(COMPILE) -c $<
++
++.c.obj:
++@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
++@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
++@am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
++
++.c.lo:
++@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
++@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
++@am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
++
++mostlyclean-libtool:
++	-rm -f *.lo
++
++clean-libtool:
++	-rm -rf .libs _libs
++install-gdkglextquartzincludeHEADERS: $(gdkglextquartzinclude_HEADERS)
++	@$(NORMAL_INSTALL)
++	test -z "$(gdkglextquartzincludedir)" || $(MKDIR_P) "$(DESTDIR)$(gdkglextquartzincludedir)"
++	@list='$(gdkglextquartzinclude_HEADERS)'; for p in $$list; do \
++	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
++	  f=$(am__strip_dir) \
++	  echo " $(gdkglextquartzincludeHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(gdkglextquartzincludedir)/$$f'"; \
++	  $(gdkglextquartzincludeHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(gdkglextquartzincludedir)/$$f"; \
++	done
++
++uninstall-gdkglextquartzincludeHEADERS:
++	@$(NORMAL_UNINSTALL)
++	@list='$(gdkglextquartzinclude_HEADERS)'; for p in $$list; do \
++	  f=$(am__strip_dir) \
++	  echo " rm -f '$(DESTDIR)$(gdkglextquartzincludedir)/$$f'"; \
++	  rm -f "$(DESTDIR)$(gdkglextquartzincludedir)/$$f"; \
++	done
++
++ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
++	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
++	unique=`for i in $$list; do \
++	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
++	  done | \
++	  $(AWK) '{ files[$$0] = 1; nonemtpy = 1; } \
++	      END { if (nonempty) { for (i in files) print i; }; }'`; \
++	mkid -fID $$unique
++tags: TAGS
++
++TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
++		$(TAGS_FILES) $(LISP)
++	tags=; \
++	here=`pwd`; \
++	list='$(SOURCES) $(HEADERS)  $(LISP) $(TAGS_FILES)'; \
++	unique=`for i in $$list; do \
++	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
++	  done | \
++	  $(AWK) '{ files[$$0] = 1; nonempty = 1; } \
++	      END { if (nonempty) { for (i in files) print i; }; }'`; \
++	if test -z "$(ETAGS_ARGS)$$tags$$unique"; then :; else \
++	  test -n "$$unique" || unique=$$empty_fix; \
++	  $(ETAGS) $(ETAGSFLAGS) $(AM_ETAGSFLAGS) $(ETAGS_ARGS) \
++	    $$tags $$unique; \
++	fi
++ctags: CTAGS
++CTAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
++		$(TAGS_FILES) $(LISP)
++	tags=; \
++	list='$(SOURCES) $(HEADERS)  $(LISP) $(TAGS_FILES)'; \
++	unique=`for i in $$list; do \
++	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
++	  done | \
++	  $(AWK) '{ files[$$0] = 1; nonempty = 1; } \
++	      END { if (nonempty) { for (i in files) print i; }; }'`; \
++	test -z "$(CTAGS_ARGS)$$tags$$unique" \
++	  || $(CTAGS) $(CTAGSFLAGS) $(AM_CTAGSFLAGS) $(CTAGS_ARGS) \
++	     $$tags $$unique
++
++GTAGS:
++	here=`$(am__cd) $(top_builddir) && pwd` \
++	  && cd $(top_srcdir) \
++	  && gtags -i $(GTAGS_ARGS) $$here
++
++distclean-tags:
++	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
++
++distdir: $(DISTFILES)
++	@srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
++	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
++	list='$(DISTFILES)'; \
++	  dist_files=`for file in $$list; do echo $$file; done | \
++	  sed -e "s|^$$srcdirstrip/||;t" \
++	      -e "s|^$$topsrcdirstrip/|$(top_builddir)/|;t"`; \
++	case $$dist_files in \
++	  */*) $(MKDIR_P) `echo "$$dist_files" | \
++			   sed '/\//!d;s|^|$(distdir)/|;s,/[^/]*$$,,' | \
++			   sort -u` ;; \
++	esac; \
++	for file in $$dist_files; do \
++	  if test -f $$file || test -d $$file; then d=.; else d=$(srcdir); fi; \
++	  if test -d $$d/$$file; then \
++	    dir=`echo "/$$file" | sed -e 's,/[^/]*$$,,'`; \
++	    if test -d $(srcdir)/$$file && test $$d != $(srcdir); then \
++	      cp -pR $(srcdir)/$$file $(distdir)$$dir || exit 1; \
++	    fi; \
++	    cp -pR $$d/$$file $(distdir)$$dir || exit 1; \
++	  else \
++	    test -f $(distdir)/$$file \
++	    || cp -p $$d/$$file $(distdir)/$$file \
++	    || exit 1; \
++	  fi; \
++	done
++check-am: all-am
++check: check-am
++all-am: Makefile $(LTLIBRARIES) $(HEADERS)
++installdirs:
++	for dir in "$(DESTDIR)$(gdkglextquartzincludedir)"; do \
++	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
++	done
++install: install-am
++install-exec: install-exec-am
++install-data: install-data-am
++uninstall: uninstall-am
++
++install-am: all-am
++	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
++
++installcheck: installcheck-am
++install-strip:
++	$(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
++	  install_sh_PROGRAM="$(INSTALL_STRIP_PROGRAM)" INSTALL_STRIP_FLAG=-s \
++	  `test -z '$(STRIP)' || \
++	    echo "INSTALL_PROGRAM_ENV=STRIPPROG='$(STRIP)'"` install
++mostlyclean-generic:
++
++clean-generic:
++
++distclean-generic:
++	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
++
++maintainer-clean-generic:
++	@echo "This command is intended for maintainers to use"
++	@echo "it deletes files that may require special tools to rebuild."
++clean: clean-am
++
++clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
++	mostlyclean-am
++
++distclean: distclean-am
++	-rm -rf ./$(DEPDIR)
++	-rm -f Makefile
++distclean-am: clean-am distclean-compile distclean-generic \
++	distclean-tags
++
++dvi: dvi-am
++
++dvi-am:
++
++html: html-am
++
++info: info-am
++
++info-am:
++
++install-data-am: install-gdkglextquartzincludeHEADERS
++
++install-dvi: install-dvi-am
++
++install-exec-am:
++
++install-html: install-html-am
++
++install-info: install-info-am
++
++install-man:
++
++install-pdf: install-pdf-am
++
++install-ps: install-ps-am
++
++installcheck-am:
++
++maintainer-clean: maintainer-clean-am
++	-rm -rf ./$(DEPDIR)
++	-rm -f Makefile
++maintainer-clean-am: distclean-am maintainer-clean-generic
++
++mostlyclean: mostlyclean-am
++
++mostlyclean-am: mostlyclean-compile mostlyclean-generic \
++	mostlyclean-libtool
++
++pdf: pdf-am
++
++pdf-am:
++
++ps: ps-am
++
++ps-am:
++
++uninstall-am: uninstall-gdkglextquartzincludeHEADERS
++
++.MAKE: install-am install-strip
++
++.PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
++	clean-libtool clean-noinstLTLIBRARIES ctags distclean \
++	distclean-compile distclean-generic distclean-libtool \
++	distclean-tags distdir dvi dvi-am html html-am info info-am \
++	install install-am install-data install-data-am install-dvi \
++	install-dvi-am install-exec install-exec-am \
++	install-gdkglextquartzincludeHEADERS install-html \
++	install-html-am install-info install-info-am install-man \
++	install-pdf install-pdf-am install-ps install-ps-am \
++	install-strip installcheck installcheck-am installdirs \
++	maintainer-clean maintainer-clean-generic mostlyclean \
++	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
++	pdf pdf-am ps ps-am tags uninstall uninstall-am \
++	uninstall-gdkglextquartzincludeHEADERS
++
++# Tell versions [3.59,3.63) of GNU make to not export all variables.
++# Otherwise a system limit (for SysV at least) may be exceeded.
++.NOEXPORT:
+diff --git a/gdk/quartz/gdkglconfig-quartz.c b/gdk/quartz/gdkglconfig-quartz.c
+new file mode 100644
+index 0000000..aa65bdc
+--- /dev/null
++++ b/gdk/quartz/gdkglconfig-quartz.c
+@@ -0,0 +1,306 @@
++#ifdef HAVE_CONFIG_H
++#include "config.h"
++#endif /* HAVE_CONFIG_H */
++
++
++#include "gdkglprivate-quartz.h"
++#include "gdkglconfig-quartz.h"
++
++
++static void gdk_gl_config_impl_quartz_class_init (GdkGLConfigImplQuartzClass *klass);
++static void gdk_gl_config_impl_quartz_finalize   (GObject                    *object);
++
++static gpointer parent_class = NULL;
++
++GType
++gdk_gl_config_impl_quartz_get_type (void)
++{
++	static GType type = 0;
++	
++	if (!type)
++    {
++		static const GTypeInfo type_info = {
++			sizeof (GdkGLConfigImplQuartzClass),
++			(GBaseInitFunc) NULL,
++			(GBaseFinalizeFunc) NULL,
++			(GClassInitFunc) gdk_gl_config_impl_quartz_class_init,
++			(GClassFinalizeFunc) NULL,
++			NULL,                   /* class_data */
++			sizeof (GdkGLConfigImplQuartz),
++			0,                      /* n_preallocs */
++			(GInstanceInitFunc) NULL
++		};
++		
++		type = g_type_register_static (GDK_TYPE_GL_CONFIG,
++									   "GdkGLConfigImplQuartz",
++									   &type_info, 0);
++    }
++	
++	return type;
++}
++
++static void
++gdk_gl_config_impl_quartz_class_init (GdkGLConfigImplQuartzClass *klass)
++{
++	GObjectClass *object_class = G_OBJECT_CLASS (klass);
++	
++	GDK_GL_NOTE_FUNC_PRIVATE ();
++	
++	parent_class = g_type_class_peek_parent (klass);
++	object_class->finalize = gdk_gl_config_impl_quartz_finalize;
++}
++
++static void
++gdk_gl_config_impl_quartz_finalize (GObject *object)
++{
++	GdkGLConfigImplQuartz *impl = GDK_GL_CONFIG_IMPL_QUARTZ (object);
++	
++	GDK_GL_NOTE_FUNC_PRIVATE ();
++	[impl->quartzPixelFormat release];
++	g_object_unref (G_OBJECT (impl->colormap));
++	
++	G_OBJECT_CLASS (parent_class)->finalize (object);
++}
++
++
++/**
++ * gdk_gl_config_get_colormap:
++ * @glconfig: a #GdkGLConfig.
++ *
++ * Gets the #GdkColormap that is appropriate for the OpenGL frame buffer
++ * configuration.
++ *
++ * Return value: the appropriate #GdkColormap.
++ **/
++GdkColormap *
++gdk_gl_config_get_colormap (GdkGLConfig *glconfig)
++{
++	g_return_val_if_fail (GDK_IS_GL_CONFIG_IMPL_QUARTZ (glconfig), NULL);
++	
++	return GDK_GL_CONFIG_IMPL_QUARTZ (glconfig)->colormap;
++}
++
++/**
++ * gdk_gl_config_get_visual:
++ * @glconfig: a #GdkGLConfig.
++ *
++ * Gets the #GdkVisual that is appropriate for the OpenGL frame buffer
++ * configuration.
++ *
++ * Return value: the appropriate #GdkVisual.
++ **/
++GdkVisual *
++gdk_gl_config_get_visual (GdkGLConfig *glconfig)
++{
++	g_return_val_if_fail (GDK_IS_GL_CONFIG_IMPL_QUARTZ (glconfig), NULL);
++	
++	return gdk_colormap_get_visual (GDK_GL_CONFIG_IMPL_QUARTZ (glconfig)->colormap);
++}
++
++static GdkGLConfig *
++gdk_gl_config_new_common (GdkScreen *screen,
++                          const int *attrib_list)
++{
++#define MAX_ATTRS 100
++	GdkGLConfig *glconfig;
++	GdkGLConfigImplQuartz *impl;
++	static NSOpenGLPixelFormatAttribute attrlist[MAX_ATTRS];
++	unsigned i=0;
++	int *p;
++	
++	glconfig = g_object_new (GDK_TYPE_GL_CONFIG_IMPL_QUARTZ, NULL);
++	impl = GDK_GL_CONFIG_IMPL_QUARTZ (glconfig);
++	
++	impl->screen = screen;
++	impl->colormap =gdk_screen_get_system_colormap (screen); // gdk_colormap_get_system();
++	
++	glconfig->is_rgba = TRUE;
++	glconfig->is_stereo = FALSE;
++	glconfig->is_double_buffered = FALSE;
++	glconfig->n_aux_buffers = 0;
++	glconfig->layer_plane = 0;
++	glconfig->has_alpha = TRUE;
++	glconfig->has_depth_buffer = FALSE;
++	glconfig->has_stencil_buffer = FALSE;
++	glconfig->has_accum_buffer = FALSE;
++	glconfig->n_sample_buffers = 0;
++	
++	
++	p = (int *) attrib_list;
++	while ((*p != GDK_GL_ATTRIB_LIST_NONE) && (i+2<MAX_ATTRS))
++    {
++		switch (*p)
++        {
++			case GDK_GL_BUFFER_SIZE:
++				/* Specifies the number of color bitplanes in each color buffer. */
++				attrlist[i++] = NSOpenGLPFAColorSize;
++				attrlist[i++] = *(++p);
++				break;
++			case GDK_GL_DOUBLEBUFFER:
++				/* The buffer is double-buffered. */
++				attrlist[i++] =NSOpenGLPFADoubleBuffer;
++				glconfig->is_double_buffered = TRUE;
++				break;
++			case GDK_GL_STEREO:
++				/* The buffer is stereoscopic.
++				 This flag is not supported in the current generic implementation. */
++				attrlist[i++] = NSOpenGLPFAStereo;
++				glconfig->is_stereo = TRUE;
++				break;
++			case GDK_GL_AUX_BUFFERS:
++				/* Specifies the number of auxiliary buffers.
++				 Auxiliary buffers are not supported. */
++				attrlist[i++] = NSOpenGLPFAAuxBuffers;
++				glconfig->n_aux_buffers = attrlist[i++] =  *(++p);
++				break;
++			case GDK_GL_DEPTH_SIZE:
++				/* Specifies the depth of the depth (z-axis) buffer. */
++				attrlist[i++] =	NSOpenGLPFADepthSize ;
++				attrlist[i++] = *(++p);
++				glconfig->has_depth_buffer = TRUE;
++				break;
++			case GDK_GL_STENCIL_SIZE:
++				/* Specifies the depth of the stencil buffer. */
++				attrlist[i++] =	NSOpenGLPFAStencilSize ;
++				attrlist[i++] = *(++p);
++				glconfig->has_stencil_buffer = TRUE;
++				break;
++			case GDK_GL_ALPHA_SIZE:				
++				attrlist[i++] =	NSOpenGLPFAAlphaSize ;
++				attrlist[i++] = *(++p);
++				glconfig->has_stencil_buffer = TRUE;
++				break;				
++			case GDK_GL_USE_GL:				
++			case GDK_GL_RGBA:
++			case GDK_GL_LEVEL:				
++			case GDK_GL_RED_SIZE:
++			case GDK_GL_GREEN_SIZE:
++			case GDK_GL_BLUE_SIZE:
++			case GDK_GL_ACCUM_RED_SIZE:
++			case GDK_GL_ACCUM_GREEN_SIZE:
++			case GDK_GL_ACCUM_BLUE_SIZE:
++			case GDK_GL_ACCUM_ALPHA_SIZE:
++				break;
++        }
++		++p;
++    }
++	attrlist[i] = 0;
++	impl->quartzPixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrlist];
++	
++	return glconfig;
++#undef MAX_ATTRS	
++}
++
++GdkGLConfig *
++gdk_gl_config_new (const int *attrib_list)
++{
++	GdkScreen *screen;
++	
++	GDK_GL_NOTE_FUNC ();
++	
++	g_return_val_if_fail (attrib_list != NULL, NULL);
++	
++	screen = gdk_screen_get_default ();
++	
++	return gdk_gl_config_new_common (screen, attrib_list);
++}
++
++/**
++ * gdk_gl_config_new_for_screen:
++ * @screen: target screen.
++ * @attrib_list: a list of attribute/value pairs. The last attribute must
++ *               be GDK_GL_ATTRIB_LIST_NONE.
++ *
++ * Returns an OpenGL frame buffer configuration that match the specified
++ * attributes.
++ *
++ * Return value: the new #GdkGLConfig.
++ **/
++GdkGLConfig *
++gdk_gl_config_new_for_screen (GdkScreen *screen,
++                              const int *attrib_list)
++{
++	GDK_GL_NOTE_FUNC ();
++	
++	g_return_val_if_fail (GDK_IS_SCREEN (screen), NULL);
++	g_return_val_if_fail (attrib_list != NULL, NULL);
++	
++	return gdk_gl_config_new_common (screen, attrib_list);
++}
++
++/**
++ * gdk_gl_config_get_attrib:
++ * @glconfig: a #GdkGLConfig.
++ * @attribute: the attribute to be returned.
++ * @value: returns the requested value.
++ *
++ * Gets information about a OpenGL frame buffer configuration.
++ *
++ * Return value: TRUE if it succeeded, FALSE otherwise.
++ **/
++gboolean
++gdk_gl_config_get_attrib (GdkGLConfig *glconfig,
++                          int          attribute,
++                          int         *value)
++{
++#if 1
++	GdkGLConfigImplQuartz *impl;
++	NSOpenGLPixelFormat   *lPixelFormat;
++	GLint lScreen=0;
++	NSOpenGLPixelFormatAttribute attrib;
++	g_return_val_if_fail (GDK_IS_GL_CONFIG_IMPL_QUARTZ(glconfig), FALSE);
++	
++	impl = GDK_GL_CONFIG_IMPL_QUARTZ (glconfig);
++	lPixelFormat = impl->quartzPixelFormat;
++	switch (attribute)
++    {
++		case GDK_GL_USE_GL:
++		case GDK_GL_RGBA:			
++			    *value = 1;
++				return TRUE;
++				break;
++		case GDK_GL_BUFFER_SIZE:
++			attrib = NSOpenGLPFAColorSize;
++			break;
++		case GDK_GL_DOUBLEBUFFER:
++			attrib = NSOpenGLPFADoubleBuffer;
++			break;
++		case GDK_GL_STEREO:
++			attrib = NSOpenGLPFAStereo;
++			break;
++		case GDK_GL_AUX_BUFFERS:
++			attrib = NSOpenGLPFAAuxBuffers;
++			break;
++		case GDK_GL_DEPTH_SIZE:
++			attrib = NSOpenGLPFADepthSize;
++			break;
++		case GDK_GL_STENCIL_SIZE:
++			attrib = NSOpenGLPFAStencilSize;			
++			break;
++		case GDK_GL_ALPHA_SIZE:
++			attrib = NSOpenGLPFAAlphaSize;			
++			break;
++		case GDK_GL_RED_SIZE:
++		case GDK_GL_GREEN_SIZE:
++		case GDK_GL_BLUE_SIZE:
++			//attrib = NSOpenGLPFAColorSize;
++			*value=1;
++			return TRUE;
++			break;
++		case GDK_GL_ACCUM_RED_SIZE:
++		case GDK_GL_ACCUM_GREEN_SIZE:
++		case GDK_GL_ACCUM_BLUE_SIZE:
++		case GDK_GL_ACCUM_ALPHA_SIZE:		
++			attrib = NSOpenGLPFAAccumSize;
++			break;
++		case GDK_GL_LEVEL:						
++		default:
++			return FALSE;
++    }
++	
++	[lPixelFormat getValues:value forAttribute:attrib forVirtualScreen:lScreen];
++	return TRUE;
++#else
++	return FALSE;
++#endif	
++}
+\ No newline at end of file
+diff --git a/gdk/quartz/gdkglconfig-quartz.h b/gdk/quartz/gdkglconfig-quartz.h
+new file mode 100644
+index 0000000..046c2d1
+--- /dev/null
++++ b/gdk/quartz/gdkglconfig-quartz.h
+@@ -0,0 +1,42 @@
++#ifndef __GDK_GL_CONFIG_QUARTZ_H__
++#define __GDK_GL_CONFIG_QUARTZ_H__
++
++#include <gdk/gdkglconfig.h>
++#include <gdk/quartz/gdkglquartz.h>
++
++G_BEGIN_DECLS
++
++typedef struct _GdkGLConfigImplQuartz      GdkGLConfigImplQuartz;
++typedef struct _GdkGLConfigImplQuartzClass GdkGLConfigImplQuartzClass;
++	
++#define GDK_TYPE_GL_CONFIG_IMPL_QUARTZ              (gdk_gl_config_impl_quartz_get_type ())
++#define GDK_GL_CONFIG_IMPL_QUARTZ(object)           (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_GL_CONFIG_IMPL_QUARTZ, GdkGLConfigImplQuartz))
++#define GDK_GL_CONFIG_IMPL_QUARTZ_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), GDK_TYPE_GL_CONFIG_IMPL_QUARTZ, GdkGLConfigImplQuartzClass))
++#define GDK_IS_GL_CONFIG_IMPL_QUARTZ(object)        (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_GL_CONFIG_IMPL_QUARTZ))
++#define GDK_IS_GL_CONFIG_IMPL_QUARTZ_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), GDK_TYPE_GL_CONFIG_IMPL_QUARTZ))
++#define GDK_GL_CONFIG_IMPL_QUARTZ_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), GDK_TYPE_GL_CONFIG_IMPL_QUARTZ, GdkGLConfigImplQuartzClass))
++	
++	struct _GdkGLConfigImplQuartz
++	{
++		GdkGLConfig parent_instance;
++		
++		int screen_num;
++		
++		GdkScreen *screen;
++		
++		GdkColormap *colormap;
++		
++		NSOpenGLPixelFormat *quartzPixelFormat;
++	};
++
++struct _GdkGLConfigImplQuartzClass
++{
++	GdkGLConfigClass parent_class;
++};
++
++GType gdk_gl_config_impl_quartz_get_type (void);
++
++G_END_DECLS
++
++
++#endif
+\ No newline at end of file
+diff --git a/gdk/quartz/gdkglcontext-quartz.c b/gdk/quartz/gdkglcontext-quartz.c
+new file mode 100644
+index 0000000..0c6a159
+--- /dev/null
++++ b/gdk/quartz/gdkglcontext-quartz.c
+@@ -0,0 +1,363 @@
++#include <gdk/gdk.h>            /* for gdk_error_trap_(push|pop) () */
++
++#include "gdkglprivate-quartz.h"
++#include "gdkgldrawable.h"
++#include "gdkglconfig-quartz.h"
++#include "gdkglcontext-quartz.h"
++#include "gdkglwindow-quartz.h"
++#include "gdkglpixmap-quartz.h"
++
++static void          gdk_gl_context_insert (GdkGLContext *glcontext);
++static void          gdk_gl_context_remove (GdkGLContext *glcontext);
++
++static GdkGLContext *gdk_gl_context_lookup (NSOpenGLContext    *quartzContext);
++static guint         gdk_gl_context_hash   (NSOpenGLContext    *quartzContext);
++static gboolean      gdk_gl_context_equal  (NSOpenGLContext   *a,
++                                            NSOpenGLContext   *b);
++
++
++static void gdk_gl_context_impl_quartz_class_init (GdkGLContextImplQuartzClass *klass);
++static void gdk_gl_context_impl_quartz_finalize   (GObject                  *object);
++
++static gpointer parent_class = NULL;
++
++
++GType
++gdk_gl_context_impl_quartz_get_type (void)
++{
++	static GType type = 0;
++	
++	if (!type)
++    {
++		static const GTypeInfo type_info = {
++			sizeof (GdkGLContextImplQuartzClass),
++			(GBaseInitFunc) NULL,
++			(GBaseFinalizeFunc) NULL,
++			(GClassInitFunc) gdk_gl_context_impl_quartz_class_init,
++			(GClassFinalizeFunc) NULL,
++			NULL,                   /* class_data */
++			sizeof (GdkGLContextImplQuartz),
++			0,                      /* n_preallocs */
++			(GInstanceInitFunc) NULL
++		};
++		
++		type = g_type_register_static (GDK_TYPE_GL_CONTEXT,
++									   "GdkGLContextImplQuartz",
++									   &type_info, 0);
++    }
++	
++	return type;
++}
++
++static void
++gdk_gl_context_impl_quartz_class_init (GdkGLContextImplQuartzClass *klass)
++{
++	GObjectClass *object_class = G_OBJECT_CLASS (klass);
++	
++	GDK_GL_NOTE_FUNC_PRIVATE ();
++	
++	parent_class = g_type_class_peek_parent (klass);
++	
++	object_class->finalize = gdk_gl_context_impl_quartz_finalize;
++}
++
++void
++_gdk_gl_context_destroy (GdkGLContext *glcontext)
++{
++	GdkGLContextImplQuartz *impl = GDK_GL_CONTEXT_IMPL_QUARTZ (glcontext);
++
++	
++	GDK_GL_NOTE_FUNC_PRIVATE ();
++	
++	if (impl->is_destroyed)
++		return;
++	
++	gdk_gl_context_remove (glcontext);
++	
++	
++	
++	if (impl->gldrawable != NULL)
++    {
++		g_object_remove_weak_pointer (G_OBJECT (impl->gldrawable),
++									  (gpointer *) &(impl->gldrawable));
++		impl->gldrawable = NULL;
++    }
++	
++	
++	impl->is_destroyed = TRUE;
++}
++
++static void
++gdk_gl_context_impl_quartz_finalize (GObject *object)
++{
++	GdkGLContextImplQuartz *impl = GDK_GL_CONTEXT_IMPL_QUARTZ (object);
++	
++	GDK_GL_NOTE_FUNC_PRIVATE ();
++	[[NSNotificationCenter defaultCenter] removeObserver:impl->quartzContext];
++	[impl->quartzContext release];
++	
++	_gdk_gl_context_destroy (GDK_GL_CONTEXT (object));
++	
++//	g_object_unref (G_OBJECT (impl->glconfig));
++	
++	if (impl->share_list != NULL)
++		g_object_unref (G_OBJECT (impl->share_list));
++	
++	G_OBJECT_CLASS (parent_class)->finalize (object);
++}
++
++
++/*
++ * GdkGLContext hash table.
++ */
++
++static GHashTable *gl_context_ht = NULL;
++
++static void
++gdk_gl_context_insert (GdkGLContext *glcontext)
++{
++	GdkGLContextImplQuartz *impl;
++	
++	GDK_GL_NOTE_FUNC_PRIVATE ();
++#if 1	
++	if (gl_context_ht == NULL)
++    {
++		GDK_GL_NOTE (MISC, g_message (" -- Create GL context hash table."));
++		gl_context_ht = g_hash_table_new ((GHashFunc) gdk_gl_context_hash,
++										  (GEqualFunc) gdk_gl_context_equal);
++    }
++#endif	
++	impl = GDK_GL_CONTEXT_IMPL_QUARTZ (glcontext);
++	
++//	g_hash_table_insert (gl_context_ht, &(impl->glxcontext), glcontext);
++}
++
++
++static void
++gdk_gl_context_remove (GdkGLContext *glcontext)
++{
++	GdkGLContextImplQuartz *impl;
++	
++	GDK_GL_NOTE_FUNC_PRIVATE ();
++	
++	if (gl_context_ht == NULL)
++		return;
++	
++	impl = GDK_GL_CONTEXT_IMPL_QUARTZ (glcontext);
++#if 1	
++	g_hash_table_remove (gl_context_ht, &(impl->quartzContext));
++#endif	
++	if (g_hash_table_size (gl_context_ht) == 0)
++    {
++		GDK_GL_NOTE (MISC, g_message (" -- Destroy GL context hash table."));
++		g_hash_table_destroy (gl_context_ht);
++		gl_context_ht = NULL;
++    }
++}
++
++
++GdkGLDrawable *gdk_gl_context_get_gl_drawable (GdkGLContext  *glcontext)
++{
++	g_return_val_if_fail (GDK_IS_GL_CONTEXT_IMPL_QUARTZ (glcontext), NULL);
++	
++	return GDK_GL_CONTEXT_IMPL_QUARTZ (glcontext)->gldrawable;
++}
++
++GdkGLContext *
++gdk_gl_context_get_current (void)
++{
++
++	static GdkGLContext *current = NULL;
++	NSOpenGLContext *quartzContext;
++	
++	GDK_GL_NOTE_FUNC ();
++	
++	quartzContext = [NSOpenGLContext currentContext];
++	
++	if (quartzContext == NULL)
++		return NULL;
++	
++	if (current && GDK_GL_CONTEXT_IMPL_QUARTZ(current)->quartzContext == quartzContext)
++		return current;
++	
++	current = gdk_gl_context_lookup (quartzContext);
++	
++	return current;
++}
++
++static GdkGLContext *
++gdk_gl_context_new_common (GdkGLConfig   *glconfig,
++                           GdkGLContext  *share_list,
++                           int            render_type,
++						   NSOpenGLContext *quartzContext
++						)
++{
++	GdkGLContext *glcontext;
++	GdkGLContextImplQuartz *impl;
++
++	
++	GDK_GL_NOTE_FUNC_PRIVATE ();
++	
++	/*
++	 * Instantiate the GdkGLContextImplX11 object.
++	 */
++	
++	glcontext = g_object_new (GDK_TYPE_GL_CONTEXT_IMPL_QUARTZ, NULL);
++	impl = GDK_GL_CONTEXT_IMPL_QUARTZ (glcontext);
++	impl->quartzContext = quartzContext;
++	
++	if (share_list != NULL && GDK_IS_GL_CONTEXT (share_list))
++    {
++		impl->share_list = share_list;
++		g_object_ref (G_OBJECT (impl->share_list));
++    }
++	else
++    {
++		impl->share_list = NULL;
++    }
++		
++	return glcontext;
++}
++
++
++/*< private >*/
++GdkGLContext *_gdk_quartz_gl_context_pixmap_new (GdkGLDrawable *gldrawable,
++												 GdkGLContext  *share_list,
++												 gboolean       direct,
++												 int            render_type)
++{
++	GdkGLConfig *glconfig;
++	GdkGLContextImplQuartz *share_impl = NULL;
++	NSOpenGLContext *quartzContext;
++	static NSOpenGLPixelFormatAttribute attribs[] = {NSOpenGLPFAOffScreen,
++		NSOpenGLPFADepthSize , 1,
++		NSOpenGLPFAColorSize, 24,
++		NSOpenGLPFAAlphaSize, 8,
++	0};
++	GDK_GL_NOTE_FUNC_PRIVATE ();
++	NSOpenGLPixelFormat *quartzPixelFormat;
++	/*
++	 * Create an OpenGL rendering context.
++	 */
++	
++	glconfig = gdk_gl_drawable_get_gl_config (gldrawable);
++	
++	
++	if (share_list != NULL && GDK_IS_GL_CONTEXT (share_list))
++    {
++		share_impl = GDK_GL_CONTEXT_IMPL_QUARTZ (share_list);
++    }
++	
++	//if (glconfig != NULL && GDK_IS_GL_CONFIG_IMPL_QUARTZ(glconfig))
++//	{
++//		GdkGLConfigImplQuartz *glQuartzConfig = GDK_GL_CONFIG_IMPL_QUARTZ(glconfig) ;
++//		quartzPixelFormat = 	glQuartzConfig -> quartzPixelFormat;
++//	}
++//	else 
++
++	quartzPixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:attribs] autorelease];
++	
++	quartzContext = [[NSOpenGLContext alloc] initWithFormat:quartzPixelFormat shareContext:nil];
++	
++	if(GDK_IS_GL_PIXMAP_IMPL_QUARTZ(gldrawable))
++	{
++		GdkGLPixmapImplQuartz *pixmapQuartz=GDK_GL_PIXMAP_IMPL_QUARTZ (gldrawable);
++		GdkPixbuf *pixbuf=pixmapQuartz->glPixbuf;
++		
++		pixmapQuartz->quartzContext = quartzContext;
++				
++		[quartzContext setOffScreen:gdk_pixbuf_get_pixels(pixbuf)
++					   width:gdk_pixbuf_get_width(pixbuf)
++					   height:gdk_pixbuf_get_height(pixbuf)
++					   rowbytes:gdk_pixbuf_get_rowstride(pixbuf)];
++	}
++	
++	
++	return gdk_gl_context_new_common (glconfig,
++									  share_list,
++									  render_type,
++									  quartzContext
++									  );
++	
++}
++
++GdkGLContext *
++_gdk_quartz_gl_context_window_new (GdkGLDrawable *gldrawable,
++                         GdkGLContext  *share_list,
++                         gboolean       direct,
++                         int            render_type)
++{
++	GdkGLConfig *glconfig;
++	GdkGLContextImplQuartz *share_impl = NULL;
++	NSOpenGLContext *quartzContext;
++	NSOpenGLPixelFormatAttribute attribs[] = {0};
++	NSView *quartzView;
++	GDK_GL_NOTE_FUNC_PRIVATE ();
++	NSOpenGLPixelFormat *quartzPixelFormat;
++	/*
++	 * Create an OpenGL rendering context.
++	 */
++	
++	glconfig = gdk_gl_drawable_get_gl_config (gldrawable);
++	
++	
++	if (share_list != NULL && GDK_IS_GL_CONTEXT (share_list))
++    {
++		share_impl = GDK_GL_CONTEXT_IMPL_QUARTZ (share_list);
++    }
++	
++	if (glconfig != NULL && GDK_IS_GL_CONFIG_IMPL_QUARTZ(glconfig))
++	{
++		GdkGLConfigImplQuartz *glQuartzConfig = GDK_GL_CONFIG_IMPL_QUARTZ(glconfig) ;
++		quartzPixelFormat = 	glQuartzConfig -> quartzPixelFormat;
++	}
++	else quartzPixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:attribs] autorelease];
++	
++	quartzContext = [[NSOpenGLContext alloc] initWithFormat:quartzPixelFormat shareContext:nil];
++	
++	if(GDK_IS_GL_WINDOW_IMPL_QUARTZ(gldrawable))
++	{
++	GDK_GL_WINDOW_IMPL_QUARTZ (gldrawable)->quartzContext = quartzContext;
++	quartzView = GDK_GL_WINDOW_IMPL_QUARTZ (gldrawable)->quartzView;
++	[[NSNotificationCenter defaultCenter] 
++		 addObserver:quartzContext
++		 selector: @selector(update)
++		 name: NSViewFrameDidChangeNotification 
++		 object:quartzView
++		 ];
++		
++	}
++	
++	
++	return gdk_gl_context_new_common (glconfig,
++									  share_list,
++									  render_type,
++									  quartzContext
++									  );
++}
++
++#if 1
++static GdkGLContext *
++gdk_gl_context_lookup (NSOpenGLContext *glxcontext)
++{
++	GDK_GL_NOTE_FUNC_PRIVATE ();
++	
++	if (gl_context_ht == NULL)
++		return NULL;
++	
++	return g_hash_table_lookup (gl_context_ht, &glxcontext);
++}
++
++static guint
++gdk_gl_context_hash (NSOpenGLContext *glxcontext)
++{
++	return (guint) glxcontext;
++}
++
++static gboolean
++gdk_gl_context_equal (NSOpenGLContext *a,
++                      NSOpenGLContext *b)
++{
++	return (a == b);
++}
++#endif
+\ No newline at end of file
+diff --git a/gdk/quartz/gdkglcontext-quartz.h b/gdk/quartz/gdkglcontext-quartz.h
+new file mode 100644
+index 0000000..4f444f7
+--- /dev/null
++++ b/gdk/quartz/gdkglcontext-quartz.h
+@@ -0,0 +1,44 @@
++#ifndef __GDK_GL_CONTEXT_QUARTZ_H__
++#define __GDK_GL_CONTEXT_QUARTZ_H__
++
++#include <gdk/gdkglcontext.h>
++
++G_BEGIN_DECLS
++
++typedef struct _GdkGLContextImplQuartz      GdkGLContextImplQuartz;
++typedef struct _GdkGLContextImplQuartzClass GdkGLContextImplQuartzClass;
++	
++#define GDK_TYPE_GL_CONTEXT_IMPL_QUARTZ              (gdk_gl_context_impl_quartz_get_type ())
++#define GDK_GL_CONTEXT_IMPL_QUARTZ(object)           (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_GL_CONTEXT_IMPL_QUARTZ, GdkGLContextImplQuartz))
++#define GDK_GL_CONTEXT_IMPL_QUARTZ_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), GDK_TYPE_GL_CONTEXT_IMPL_QUARTZ, GdkGLContextImplQuartzClass))
++#define GDK_IS_GL_CONTEXT_IMPL_QUARTZ(object)        (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_GL_CONTEXT_IMPL_QUARTZ))
++#define GDK_IS_GL_CONTEXT_IMPL_QUARTZ_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), GDK_TYPE_GL_CONTEXT_IMPL_QUARTZ))
++#define GDK_GL_CONTEXT_IMPL_QUARTZ_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), GDK_TYPE_GL_CONTEXT_IMPL_QUARTZ, GdkGLContextImplQuartzClass))
++	
++	struct _GdkGLContextImplQuartz
++	{
++		GdkGLContext parent_instance;
++		
++		GdkGLContext *share_list;
++		gboolean is_direct;
++		int render_type;
++		
++		GdkGLConfig *glconfig;
++		
++		GdkGLDrawable *gldrawable;
++		
++		NSOpenGLContext *quartzContext;
++		
++		guint is_destroyed : 1;
++	};
++
++struct _GdkGLContextImplQuartzClass
++{
++	GdkGLContextClass parent_class;
++};
++
++GType gdk_gl_context_impl_quartz_get_type (void);
++
++G_END_DECLS
++
++#endif
+\ No newline at end of file
+diff --git a/gdk/quartz/gdkgldrawable-quartz.c b/gdk/quartz/gdkgldrawable-quartz.c
+new file mode 100644
+index 0000000..5a511af
+--- /dev/null
++++ b/gdk/quartz/gdkgldrawable-quartz.c
+@@ -0,0 +1,16 @@
++#include "gdkglprivate-quartz.h"
++#include <OpenGL/gl.h>
++
++/*< private >*/
++void
++_gdk_gl_drawable_impl_quartz_wait_gl (GdkGLDrawable *gldrawable)
++{
++	glFinish ();
++}
++
++/*< private >*/
++void
++_gdk_gl_drawable_impl_quartz_wait_gdk (GdkGLDrawable *gldrawable)
++{
++
++}
+\ No newline at end of file
+diff --git a/gdk/quartz/gdkglfont-quartz.c b/gdk/quartz/gdkglfont-quartz.c
+new file mode 100644
+index 0000000..e95186f
+--- /dev/null
++++ b/gdk/quartz/gdkglfont-quartz.c
+@@ -0,0 +1,22 @@
++#include "gdkglprivate-quartz.h"
++#include "gdkglfont.h"
++
++#include <gdk/gdkdisplay.h>
++
++PangoFont *
++gdk_gl_font_use_pango_font (const PangoFontDescription *font_desc,
++                            int                         first,
++                            int                         count,
++                            int                         list_base)
++{
++	return NULL;
++}
++PangoFont *
++gdk_gl_font_use_pango_font_for_display (GdkDisplay                 *display,
++                                        const PangoFontDescription *font_desc,
++                                        int                         first,
++                                        int                         count,
++                                        int                         list_base)
++{
++	return NULL;
++}
+\ No newline at end of file
+diff --git a/gdk/quartz/gdkglpixmap-quartz.c b/gdk/quartz/gdkglpixmap-quartz.c
+new file mode 100644
+index 0000000..7d1f54a
+--- /dev/null
++++ b/gdk/quartz/gdkglpixmap-quartz.c
+@@ -0,0 +1,305 @@
++#include "gdkglprivate-quartz.h"
++#include "gdkglconfig-quartz.h"
++#include "gdkglcontext-quartz.h"
++#include "gdkglpixmap-quartz.h"
++
++static void gdk_gl_pixmap_sync_gl  (GdkGLPixmap *glpixmap);
++static void gdk_gl_pixmap_sync_buffers  (GdkGLPixmap *glpixmap);
++static void gdk_gl_pixmap_sync_gdk (GdkGLPixmap *glpixmap);
++
++
++static gboolean     gdk_gl_pixmap_impl_quartz_make_context_current (GdkGLDrawable *draw,
++                                                                 GdkGLDrawable *read,
++                                                                 GdkGLContext  *glcontext);
++static gboolean     gdk_gl_pixmap_impl_quartz_is_double_buffered   (GdkGLDrawable *gldrawable);
++static void         gdk_gl_pixmap_impl_quartz_swap_buffers         (GdkGLDrawable *gldrawable);
++
++static void         gdk_gl_pixmap_impl_quartz_wait_gl              (GdkGLDrawable *gldrawable);
++static void         gdk_gl_pixmap_impl_quartz_wait_gdk             (GdkGLDrawable *gldrawable);
++
++static gboolean     gdk_gl_pixmap_impl_quartz_gl_begin             (GdkGLDrawable *draw,
++																	GdkGLDrawable *read,
++																	GdkGLContext  *glcontext);
++static void         gdk_gl_pixmap_impl_quartz_gl_end               (GdkGLDrawable *gldrawable);
++static GdkGLConfig *gdk_gl_pixmap_impl_quartz_get_gl_config        (GdkGLDrawable *gldrawable);
++
++static void gdk_gl_pixmap_impl_quartz_class_init (GdkGLPixmapImplQuartzClass *klass);
++static void gdk_gl_pixmap_impl_quartz_finalize   (GObject                 *object);
++static void gdk_gl_pixmap_impl_quartz_gl_drawable_interface_init (GdkGLDrawableClass *iface);
++
++static gpointer parent_class = NULL;
++
++GType
++gdk_gl_pixmap_impl_quartz_get_type (void)
++{
++	static GType type = 0;
++	
++	if (!type)
++    {
++		static const GTypeInfo type_info = {
++			sizeof (GdkGLPixmapImplQuartzClass),
++			(GBaseInitFunc) NULL,
++			(GBaseFinalizeFunc) NULL,
++			(GClassInitFunc) gdk_gl_pixmap_impl_quartz_class_init,
++			(GClassFinalizeFunc) NULL,
++			NULL,                   /* class_data */
++			sizeof (GdkGLPixmapImplQuartz),
++			0,                      /* n_preallocs */
++			(GInstanceInitFunc) NULL
++		};
++		static const GInterfaceInfo gl_drawable_interface_info = {
++			(GInterfaceInitFunc) gdk_gl_pixmap_impl_quartz_gl_drawable_interface_init,
++			(GInterfaceFinalizeFunc) NULL,
++			NULL                    /* interface_data */
++		};
++		
++		type = g_type_register_static (GDK_TYPE_GL_PIXMAP,
++									   "GdkGLPixmapImplQuartz",
++									   &type_info, 0);
++		g_type_add_interface_static (type,
++									 GDK_TYPE_GL_DRAWABLE,
++									 &gl_drawable_interface_info);
++    }
++	
++	return type;
++}
++
++static void
++gdk_gl_pixmap_impl_quartz_class_init (GdkGLPixmapImplQuartzClass *klass)
++{
++	GObjectClass *object_class = G_OBJECT_CLASS (klass);
++	
++	GDK_GL_NOTE_FUNC_PRIVATE ();
++	
++	parent_class = g_type_class_peek_parent (klass);
++	
++	object_class->finalize = gdk_gl_pixmap_impl_quartz_finalize;
++}
++
++void
++_gdk_gl_pixmap_destroy (GdkGLPixmap *glpixmap)
++{
++	GdkGLPixmapImplQuartz *impl = GDK_GL_PIXMAP_IMPL_QUARTZ (glpixmap);
++	
++	GDK_GL_NOTE_FUNC_PRIVATE ();
++	
++	if (impl->is_destroyed)
++		return;
++	
++	impl->is_destroyed = TRUE;
++}
++
++static void
++gdk_gl_pixmap_impl_quartz_finalize (GObject *object)
++{
++	GdkGLPixmapImplQuartz *impl = GDK_GL_PIXMAP_IMPL_QUARTZ (object);
++	
++	GDK_GL_NOTE_FUNC_PRIVATE ();
++	
++	_gdk_gl_pixmap_destroy (GDK_GL_PIXMAP (object));
++	
++	g_object_unref (G_OBJECT (impl->glconfig));
++	
++	g_object_unref (G_OBJECT (impl->glPixbuf));
++	
++	G_OBJECT_CLASS (parent_class)->finalize (object);
++}
++
++static void
++gdk_gl_pixmap_impl_quartz_gl_drawable_interface_init (GdkGLDrawableClass *iface)
++{
++	GDK_GL_NOTE_FUNC_PRIVATE ();
++	
++	iface->create_new_context   = _gdk_quartz_gl_context_pixmap_new;
++	iface->make_context_current =  gdk_gl_pixmap_impl_quartz_make_context_current;
++	iface->is_double_buffered   =  gdk_gl_pixmap_impl_quartz_is_double_buffered;
++	iface->swap_buffers         =  gdk_gl_pixmap_impl_quartz_swap_buffers;
++	iface->wait_gl              =  gdk_gl_pixmap_impl_quartz_wait_gl;
++	iface->wait_gdk             =  gdk_gl_pixmap_impl_quartz_wait_gdk;
++	iface->gl_begin             =  gdk_gl_pixmap_impl_quartz_make_context_current;
++	iface->gl_end               =  gdk_gl_pixmap_impl_quartz_gl_end;
++	iface->get_gl_config        =  gdk_gl_pixmap_impl_quartz_get_gl_config;
++	iface->get_size             = _gdk_gl_pixmap_get_size;
++}
++
++GdkGLPixmap *
++gdk_gl_pixmap_new (GdkGLConfig *glconfig,
++                   GdkPixmap   *pixmap,
++                   const int   *attrib_list)
++{
++	GdkGLPixmap *glpixmap;
++	GdkGLPixmapImplQuartz *impl;
++	
++	gint width, height;
++//	gint depth;	
++
++	
++	GDK_GL_NOTE_FUNC ();
++	
++	g_return_val_if_fail (GDK_IS_GL_CONFIG_IMPL_QUARTZ (glconfig), NULL);
++	g_return_val_if_fail (GDK_IS_PIXMAP (pixmap), NULL);
++	
++	/*
++	 * Create offscreen rendering area.
++	 */
++	
++	gdk_drawable_get_size (GDK_DRAWABLE (pixmap), &width, &height);
++	
++//	depth = gdk_drawable_get_depth (GDK_DRAWABLE (pixmap));
++//	if(depth != 32) goto FAIL;
++//	depth = 32;
++	
++	glpixmap = g_object_new (GDK_TYPE_GL_PIXMAP_IMPL_QUARTZ, NULL);
++	impl = GDK_GL_PIXMAP_IMPL_QUARTZ (glpixmap);
++	
++	glpixmap->drawable = GDK_DRAWABLE (pixmap);
++	g_object_add_weak_pointer (G_OBJECT (glpixmap->drawable),
++							   (gpointer *) &(glpixmap->drawable));
++	
++	
++	impl->glPixbuf  = gdk_pixbuf_new (GDK_COLORSPACE_RGB, TRUE, 8, width, height);
++	
++//	impl->width = width;
++//	impl->height = height;
++//	impl->depth = depth;
++//	impl->bufPixmap = pixmap;
++	
++	impl->glconfig = glconfig;
++	g_object_ref (G_OBJECT (impl->glconfig));
++		
++	impl->is_destroyed = FALSE;
++	
++	return glpixmap;
++	
++FAIL:
++	
++	return NULL;  
++}
++
++static gboolean
++gdk_gl_pixmap_impl_quartz_make_context_current (GdkGLDrawable *draw,
++                                             GdkGLDrawable *read,
++                                             GdkGLContext  *glcontext)
++{
++	NSOpenGLContext *quartzContext = GDK_GL_CONTEXT_IMPL_QUARTZ(glcontext)->quartzContext; 
++	GdkGLPixmapImplQuartz *impl = GDK_GL_PIXMAP_IMPL_QUARTZ(draw);
++	GdkPixbuf    *pixbuf = impl->glPixbuf;
++	impl->quartzContext = quartzContext;
++	
++	
++	[quartzContext setOffScreen:gdk_pixbuf_get_pixels(pixbuf)
++						  width:gdk_pixbuf_get_width(pixbuf)
++						 height:gdk_pixbuf_get_height(pixbuf)
++					   rowbytes:gdk_pixbuf_get_rowstride(pixbuf)];
++	
++	[quartzContext makeCurrentContext];
++	return TRUE;
++}
++
++static gboolean
++gdk_gl_pixmap_impl_quartz_is_double_buffered (GdkGLDrawable *gldrawable)
++{
++	g_return_val_if_fail (GDK_IS_GL_PIXMAP_IMPL_QUARTZ (gldrawable), FALSE);
++	
++	return gdk_gl_config_is_double_buffered (GDK_GL_PIXMAP_IMPL_QUARTZ (gldrawable)->glconfig);
++}
++
++static void
++gdk_gl_pixmap_impl_quartz_swap_buffers (GdkGLDrawable *gldrawable)
++{
++	
++	NSOpenGLContext *quartzContext=GDK_GL_PIXMAP_IMPL_QUARTZ (gldrawable)->quartzContext;
++	[quartzContext flushBuffer];
++	
++}
++
++static void gdk_gl_pixmap_sync_buffers  (GdkGLPixmap *glpixmap)
++{
++//	GdkPixmap	 *pixmap = glpixmap->drawable;
++	GdkPixbuf    *pixbuf = GDK_GL_PIXMAP_IMPL_QUARTZ (glpixmap)->glPixbuf;
++//	gint		 width, height;
++	gint		 pwidth, pheight;
++	NSOpenGLContext *quartzContext=GDK_GL_PIXMAP_IMPL_QUARTZ (glpixmap)->quartzContext;
++	
++//	gdk_drawable_get_size (GDK_DRAWABLE (pixmap), &width, &height);
++	
++	pwidth = gdk_pixbuf_get_width(pixbuf);
++	pheight = gdk_pixbuf_get_height(pixbuf);
++	
++//	if(pwidth==width && pheight==height) return;
++	
++//	g_object_unref (G_OBJECT (pixbuf));
++//	pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB, TRUE, 8, width, height);
++//	GDK_GL_PIXMAP_IMPL_QUARTZ (glpixmap)->glPixbuf =  pixbuf;
++	
++	[quartzContext setOffScreen:gdk_pixbuf_get_pixels(pixbuf)
++						  width:pwidth
++						 height:pheight
++					   rowbytes:gdk_pixbuf_get_rowstride(pixbuf)];
++}
++
++static void gdk_gl_pixmap_sync_gl  (GdkGLPixmap *glpixmap)
++{
++	GdkPixmap	 *pixmap = glpixmap->drawable;
++	GdkPixbuf    *pixbuf = GDK_GL_PIXMAP_IMPL_QUARTZ (glpixmap)->glPixbuf;
++	
++	
++	gdk_draw_pixbuf(pixmap,
++                    NULL,
++                    pixbuf,
++                    0,  0,
++                    0 , 0,
++                    gdk_pixbuf_get_width(pixbuf),
++					gdk_pixbuf_get_height(pixbuf),
++                    GDK_RGB_DITHER_NORMAL,
++                    0, 0);
++}
++
++static void gdk_gl_pixmap_sync_gdk (GdkGLPixmap *glpixmap)
++{
++	gdk_gl_pixmap_sync_gl  (glpixmap);
++}
++
++static void         gdk_gl_pixmap_impl_quartz_wait_gl              (GdkGLDrawable *gldrawable)
++{
++	glFinish ();
++	
++	/* Sync. */
++	gdk_gl_pixmap_sync_gl (GDK_GL_PIXMAP (gldrawable));
++}
++static void         gdk_gl_pixmap_impl_quartz_wait_gdk             (GdkGLDrawable *gldrawable)
++{
++
++//	gdk_gl_pixmap_sync_buffers( GDK_GL_PIXMAP(gldrawable));
++}
++
++static gboolean
++ gdk_gl_pixmap_impl_quartz_gl_begin (GdkGLDrawable *draw,
++ GdkGLDrawable *read,
++ GdkGLContext  *glcontext)
++{
++	gboolean ret;
++	
++	ret = gdk_gl_pixmap_impl_quartz_make_context_current (draw, read, glcontext);
++	if (!ret)
++		return FALSE;
++	
++	gdk_gl_pixmap_impl_quartz_wait_gdk (draw);
++	
++	return TRUE;
++}
++
++
++static void
++gdk_gl_pixmap_impl_quartz_gl_end (GdkGLDrawable *gldrawable)
++{
++	 gdk_gl_pixmap_impl_quartz_wait_gl (gldrawable);
++}
++
++static GdkGLConfig *
++gdk_gl_pixmap_impl_quartz_get_gl_config (GdkGLDrawable *gldrawable)
++{
++	g_return_val_if_fail (GDK_IS_GL_PIXMAP_IMPL_QUARTZ (gldrawable), NULL);
++	
++	return GDK_GL_PIXMAP_IMPL_QUARTZ (gldrawable)->glconfig;
++}
+diff --git a/gdk/quartz/gdkglpixmap-quartz.h b/gdk/quartz/gdkglpixmap-quartz.h
+new file mode 100644
+index 0000000..197f6a2
+--- /dev/null
++++ b/gdk/quartz/gdkglpixmap-quartz.h
+@@ -0,0 +1,49 @@
++#ifndef __GDK_GL_PIXMAP_QUARTZ_H__
++#define __GDK_GL_PIXMAP_QUARTZ_H__
++
++#include <gdk/gdkglpixmap.h>
++#include <gdk/quartz/gdkglquartz.h>
++
++G_BEGIN_DECLS
++
++typedef struct _GdkGLPixmapImplQuartz      GdkGLPixmapImplQuartz;
++typedef struct _GdkGLPixmapImplQuartzClass GdkGLPixmapImplQuartzClass;
++	
++#define GDK_TYPE_GL_PIXMAP_IMPL_QUARTZ              (gdk_gl_pixmap_impl_quartz_get_type ())
++#define GDK_GL_PIXMAP_IMPL_QUARTZ(object)           (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_GL_PIXMAP_IMPL_QUARTZ, GdkGLPixmapImplQuartz))
++#define GDK_GL_PIXMAP_IMPL_QUARTZ_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), GDK_TYPE_GL_PIXMAP_IMPL_QUARTZ, GdkGLPixmapImplQuartzClass))
++#define GDK_IS_GL_PIXMAP_IMPL_QUARTZ(object)        (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_GL_PIXMAP_IMPL_QUARTZ))
++#define GDK_IS_GL_PIXMAP_IMPL_QUARTZ_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), GDK_TYPE_GL_PIXMAP_IMPL_QUARTZ))
++#define GDK_GL_PIXMAP_IMPL_QUARTZ_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), GDK_TYPE_GL_PIXMAP_IMPL_QUARTZ, GdkGLPixmapImplQuartzClass))
++	
++struct _GdkGLPixmapImplQuartz
++	{
++		GdkGLPixmap parent_instance;
++		
++//		GdkPixmap   *bufPixmap;
++		NSOpenGLContext		*quartzContext;
++		
++//		int width;
++//		int height;
++//		int depth;
++		
++		GdkPixbuf *glPixbuf;
++		
++		GdkGLConfig *glconfig;
++		
++		
++		guint is_destroyed : 1;
++	};
++
++struct _GdkGLPixmapImplQuartzClass
++{
++	GdkGLPixmapClass parent_class;
++};
++
++GType gdk_gl_pixmap_impl_quartz_get_type (void);
++
++
++G_END_DECLS
++
++
++#endif
+\ No newline at end of file
+diff --git a/gdk/quartz/gdkglprivate-quartz.h b/gdk/quartz/gdkglprivate-quartz.h
+new file mode 100644
+index 0000000..326ccff
+--- /dev/null
++++ b/gdk/quartz/gdkglprivate-quartz.h
+@@ -0,0 +1,26 @@
++#ifndef __GDK_GL_PRIVATE_QUARTZ_H__
++#define __GDK_GL_PRIVATE_QUARTZ_H__
++
++#include <gdk/gdkprivate.h>
++
++#include <gdk/gdkglprivate.h>
++
++
++G_BEGIN_DECLS
++
++GdkGLContext *_gdk_quartz_gl_context_window_new (GdkGLDrawable *gldrawable,
++										  GdkGLContext  *share_list,
++										  gboolean       direct,
++										  int            render_type);
++
++GdkGLContext *_gdk_quartz_gl_context_pixmap_new (GdkGLDrawable *gldrawable,
++												 GdkGLContext  *share_list,
++												 gboolean       direct,
++												 int            render_type);
++
++void _gdk_gl_drawable_impl_quartz_wait_gl  (GdkGLDrawable *gldrawable);
++void _gdk_gl_drawable_impl_quartz_wait_gdk (GdkGLDrawable *gldrawable);
++
++G_BEGIN_DECLS
++
++#endif /* __GDK_GL_PRIVATE_QUARTZ_H__ */
+diff --git a/gdk/quartz/gdkglquartz.h b/gdk/quartz/gdkglquartz.h
+new file mode 100644
+index 0000000..8330ed1
+--- /dev/null
++++ b/gdk/quartz/gdkglquartz.h
+@@ -0,0 +1,9 @@
++
++#ifndef __GDK_GL_X_H__
++#define __GDK_GL_X_H__
++
++#include <gdk/gdkquartz.h>
++
++#include <OpenGL/gl.h>
++
++#endif
+\ No newline at end of file
+diff --git a/gdk/quartz/gdkglquery-quartz.c b/gdk/quartz/gdkglquery-quartz.c
+new file mode 100644
+index 0000000..2dc9e90
+--- /dev/null
++++ b/gdk/quartz/gdkglquery-quartz.c
+@@ -0,0 +1,215 @@
++/* GdkGLExt - OpenGL Extension to GDK
++ * Copyright (C) 2002-2004  Naofumi Yasufuku
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA.
++ */
++
++#include <string.h>
++
++#include <mach-o/dyld.h>
++
++#include "gdkglquartz.h"
++#include "gdkglprivate-quartz.h"
++#include "gdkglconfig-quartz.h"
++#include "gdkglquery.h"
++
++#ifdef GDKGLEXT_MULTIHEAD_SUPPORT
++#include <gdk/gdkdisplay.h>
++#endif /* GDKGLEXT_MULTIHEAD_SUPPORT */
++
++/**
++ * gdk_gl_query_extension:
++ *
++ * Indicates whether the window system supports the OpenGL extension
++ * (GLX, WGL, etc.).
++ *
++ * Return value: TRUE if OpenGL is supported, FALSE otherwise.
++ **/
++gboolean
++gdk_gl_query_extension (void)
++{
++return TRUE;
++}
++
++
++/**
++ * gdk_gl_query_extension_for_display:
++ * @display: the #GdkDisplay where the query is sent to.
++ *
++ * Indicates whether the window system supports the OpenGL extension
++ * (GLX, WGL, etc.).
++ *
++ * Return value: TRUE if OpenGL is supported, FALSE otherwise.
++ **/
++gboolean
++gdk_gl_query_extension_for_display (GdkDisplay *display)
++{
++return TRUE;
++}
++
++
++/**
++ * gdk_gl_query_version:
++ * @major: returns the major version number of the OpenGL extension.
++ * @minor: returns the minor version number of the OpenGL extension.
++ *
++ * Returns the version numbers of the OpenGL extension to the window system.
++ *
++ * In the X Window System, it returns the GLX version.
++ *
++ * In the Microsoft Windows, it returns the Windows version.
++ *
++ * Return value: FALSE if it fails, TRUE otherwise.
++ **/
++gboolean
++gdk_gl_query_version (int *major,
++                      int *minor)
++{
++	*major = 1;
++	*minor = 0;
++	return TRUE;
++}
++
++
++/**
++ * gdk_gl_query_version_for_display:
++ * @display: the #GdkDisplay where the query is sent to.
++ * @major: returns the major version number of the OpenGL extension.
++ * @minor: returns the minor version number of the OpenGL extension.
++ *
++ * Returns the version numbers of the OpenGL extension to the window system.
++ *
++ * In the X Window System, it returns the GLX version.
++ *
++ * In the Microsoft Windows, it returns the Windows version.
++ *
++ * Return value: FALSE if it fails, TRUE otherwise.
++ **/
++gboolean
++gdk_gl_query_version_for_display (GdkDisplay *display,
++                                  int        *major,
++                                  int        *minor)
++{
++	*major = 1;
++	*minor = 0;
++	return TRUE;
++}
++
++
++
++
++/**
++ * gdk_gl_get_proc_address:
++ * @proc_name: function name.
++ *
++ * Returns the address of the OpenGL, GLU, or GLX function.
++ *
++ * Return value: the address of the function named by @proc_name.
++ **/
++
++
++
++#define _GDK_GL_LIBGL_PATH  "/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib"
++#define _GDK_GL_LIBGLU_PATH "/System/Library/Frameworks/OpenGL.framework/Libraries/libGLU.dylib"
++
++GdkGLProc
++gdk_gl_get_proc_address (const char *proc_name)
++{
++  const char *image_name;
++  static const struct mach_header *libgl_image = NULL;
++  static const struct mach_header *libglu_image = NULL;
++  NSSymbol symbol;
++  char *symbol_name;
++
++
++  GDK_GL_NOTE_FUNC ();
++
++  if (strncmp ("glu", proc_name, 3) != 0)
++    {
++      /* libGL */
++
++      if (libgl_image == NULL)
++        {
++          image_name = g_getenv ("GDK_GL_LIBGL_PATH");
++          if (image_name == NULL)
++            image_name = _GDK_GL_LIBGL_PATH;
++
++          GDK_GL_NOTE (MISC, g_message (" - Add Mach-O image %s", image_name));
++
++          libgl_image = NSAddImage (image_name, NSADDIMAGE_OPTION_RETURN_ON_ERROR);
++          if (libgl_image == NULL)
++            {
++              g_warning ("Cannot add Mach-O image %s", image_name);
++              return NULL;
++            }
++        }
++
++
++
++
++      /* Try Mach-O dyld */
++
++      symbol_name = g_strconcat ("_", proc_name, NULL);
++
++      symbol = NSLookupSymbolInImage (libgl_image,
++                                      symbol_name,
++                                      NSLOOKUPSYMBOLINIMAGE_OPTION_BIND |
++                                      NSLOOKUPSYMBOLINIMAGE_OPTION_RETURN_ON_ERROR);
++      GDK_GL_NOTE (MISC, g_message (" - NSLookupSymbolInImage () - %s",
++                                    symbol ? "succeeded" : "failed"));
++
++      g_free (symbol_name);
++
++      if (symbol != NULL)
++        return NSAddressOfSymbol (symbol);
++    }
++  else
++    {
++      /* libGLU */
++
++      if (libglu_image == NULL)
++        {
++          image_name = g_getenv ("GDK_GL_LIBGLU_PATH");
++          if (image_name == NULL)
++            image_name = _GDK_GL_LIBGLU_PATH;
++
++          GDK_GL_NOTE (MISC, g_message (" - Add Mach-O image %s", image_name));
++
++          libglu_image = NSAddImage (image_name, NSADDIMAGE_OPTION_RETURN_ON_ERROR);
++          if (libglu_image == NULL)
++            {
++              g_warning ("Cannot add Mach-O image %s", image_name);
++              return NULL;
++            }
++        }
++
++      symbol_name = g_strconcat ("_", proc_name, NULL);
++
++      symbol = NSLookupSymbolInImage (libglu_image,
++                                      symbol_name,
++                                      NSLOOKUPSYMBOLINIMAGE_OPTION_BIND |
++                                      NSLOOKUPSYMBOLINIMAGE_OPTION_RETURN_ON_ERROR);
++      GDK_GL_NOTE (MISC, g_message (" - NSLookupSymbolInImage () - %s",
++                                    symbol ? "succeeded" : "failed"));
++
++      g_free (symbol_name);
++
++      if (symbol != NULL)
++        return NSAddressOfSymbol (symbol);
++    }
++
++  return NULL;
++}
++
+diff --git a/gdk/quartz/gdkglwindow-quartz.c b/gdk/quartz/gdkglwindow-quartz.c
+new file mode 100644
+index 0000000..377a924
+--- /dev/null
++++ b/gdk/quartz/gdkglwindow-quartz.c
+@@ -0,0 +1,204 @@
++#include "gdkglprivate-quartz.h"
++#include "gdkglconfig-quartz.h"
++#include "gdkglcontext-quartz.h"
++#include "gdkglwindow-quartz.h"
++
++#include <gdk/gdkglquery.h>
++
++static gboolean     gdk_gl_window_impl_quartz_make_context_current (GdkGLDrawable *draw,
++																	GdkGLDrawable *read,
++																	GdkGLContext  *glcontext);
++static gboolean     gdk_gl_window_impl_quartz_is_double_buffered   (GdkGLDrawable *gldrawable);
++static void         gdk_gl_window_impl_quartz_swap_buffers         (GdkGLDrawable *gldrawable);
++
++static gboolean        gdk_gl_window_impl_quartz_gl_begin            (GdkGLDrawable *draw,
++																   GdkGLDrawable *read,
++																   GdkGLContext  *glcontext);
++
++static void         gdk_gl_window_impl_quartz_gl_end               (GdkGLDrawable *gldrawable);
++static GdkGLConfig *gdk_gl_window_impl_quartz_get_gl_config        (GdkGLDrawable *gldrawable);
++
++static void gdk_gl_window_impl_quartz_class_init (GdkGLWindowImplQuartzClass *klass);
++static void gdk_gl_window_impl_quartz_finalize   (GObject                 *object);
++static void gdk_gl_window_impl_quartz_gl_drawable_interface_init (GdkGLDrawableClass *iface);
++
++static gpointer parent_class = NULL;
++
++GType
++gdk_gl_window_impl_quartz_get_type (void)
++{
++	static GType type = 0;
++	
++	if (!type)
++    {
++		static const GTypeInfo type_info = {
++			sizeof (GdkGLWindowImplQuartzClass),
++			(GBaseInitFunc) NULL,
++			(GBaseFinalizeFunc) NULL,
++			(GClassInitFunc) gdk_gl_window_impl_quartz_class_init,
++			(GClassFinalizeFunc) NULL,
++			NULL,                   /* class_data */
++			sizeof (GdkGLWindowImplQuartz),
++			0,                      /* n_preallocs */
++			(GInstanceInitFunc) NULL
++		};
++		static const GInterfaceInfo gl_drawable_interface_info = {
++			(GInterfaceInitFunc) gdk_gl_window_impl_quartz_gl_drawable_interface_init,
++			(GInterfaceFinalizeFunc) NULL,
++			NULL                    /* interface_data */
++		};
++		
++		type = g_type_register_static (GDK_TYPE_GL_WINDOW,
++									   "GdkGLWindowImplQuartz",
++									   &type_info, 0);
++		g_type_add_interface_static (type,
++									 GDK_TYPE_GL_DRAWABLE,
++									 &gl_drawable_interface_info);
++    }
++	
++	return type;
++}
++
++static void
++gdk_gl_window_impl_quartz_class_init (GdkGLWindowImplQuartzClass *klass)
++{
++	GObjectClass *object_class = G_OBJECT_CLASS (klass);
++	
++	GDK_GL_NOTE_FUNC_PRIVATE ();
++	
++	parent_class = g_type_class_peek_parent (klass);
++	
++	object_class->finalize = gdk_gl_window_impl_quartz_finalize;
++}
++
++void
++_gdk_gl_window_destroy (GdkGLWindow *glwindow)
++{
++	GdkGLWindowImplQuartz *impl = GDK_GL_WINDOW_IMPL_QUARTZ (glwindow);
++
++	
++	GDK_GL_NOTE_FUNC_PRIVATE ();
++	
++	if (impl->is_destroyed)
++		return;
++	
++	impl->is_destroyed = TRUE;
++}
++
++static void
++gdk_gl_window_impl_quartz_finalize (GObject *object)
++{
++	GdkGLWindowImplQuartz *impl = GDK_GL_WINDOW_IMPL_QUARTZ (object);
++	
++	GDK_GL_NOTE_FUNC_PRIVATE ();
++	
++	_gdk_gl_window_destroy (GDK_GL_WINDOW (object));
++	
++	g_object_unref (G_OBJECT (impl->glconfig));
++	
++	G_OBJECT_CLASS (parent_class)->finalize (object);
++}
++
++static void
++gdk_gl_window_impl_quartz_gl_drawable_interface_init (GdkGLDrawableClass *iface)
++{
++	GDK_GL_NOTE_FUNC_PRIVATE ();
++	
++	iface->create_new_context   = _gdk_quartz_gl_context_window_new;
++	iface->make_context_current =  gdk_gl_window_impl_quartz_make_context_current;
++	iface->is_double_buffered   =  gdk_gl_window_impl_quartz_is_double_buffered;
++	iface->swap_buffers         =  gdk_gl_window_impl_quartz_swap_buffers;
++	iface->wait_gl              = _gdk_gl_drawable_impl_quartz_wait_gl;
++	iface->wait_gdk             = _gdk_gl_drawable_impl_quartz_wait_gdk;
++	iface->gl_begin             =  gdk_gl_window_impl_quartz_gl_begin;
++	iface->gl_end               =  gdk_gl_window_impl_quartz_gl_end;
++	iface->get_gl_config        =  gdk_gl_window_impl_quartz_get_gl_config;
++	iface->get_size             = _gdk_gl_window_get_size;
++}
++
++
++GdkGLWindow *
++gdk_gl_window_new (GdkGLConfig *glconfig,
++                   GdkWindow   *window,
++                   const int   *attrib_list)
++{
++	GdkGLWindow *glwindow;
++	GdkGLWindowImplQuartz *impl;
++	NSView *quartzView;
++	
++	GDK_GL_NOTE_FUNC ();
++	
++	g_return_val_if_fail (GDK_IS_GL_CONFIG_IMPL_QUARTZ (glconfig), NULL);
++	g_return_val_if_fail (GDK_IS_WINDOW (window), NULL);
++	
++	quartzView = gdk_quartz_window_get_nsview(window);
++
++	
++	glwindow = g_object_new (GDK_TYPE_GL_WINDOW_IMPL_QUARTZ, NULL);
++	impl = GDK_GL_WINDOW_IMPL_QUARTZ (glwindow);
++	
++	glwindow->drawable = GDK_DRAWABLE (window);
++	g_object_add_weak_pointer (G_OBJECT (glwindow->drawable),
++							   (gpointer *) &(glwindow->drawable));
++	
++	
++	impl->glconfig = glconfig;
++	g_object_ref (G_OBJECT (impl->glconfig));
++	
++	impl->quartzView = quartzView;
++	
++	impl->is_destroyed = FALSE;
++	
++	return glwindow;
++}
++
++static gboolean
++gdk_gl_window_impl_quartz_is_double_buffered (GdkGLDrawable *gldrawable)
++{
++	g_return_val_if_fail (GDK_IS_GL_WINDOW_IMPL_QUARTZ (gldrawable), FALSE);
++	
++	return gdk_gl_config_is_double_buffered (GDK_GL_WINDOW_IMPL_QUARTZ (gldrawable)->glconfig);
++}
++
++static void
++gdk_gl_window_impl_quartz_swap_buffers (GdkGLDrawable *gldrawable)
++{
++	NSOpenGLContext *quartzContext=GDK_GL_WINDOW_IMPL_QUARTZ (gldrawable)->quartzContext;
++	[quartzContext flushBuffer];
++}
++
++static gboolean     gdk_gl_window_impl_quartz_make_context_current (GdkGLDrawable *draw,
++																	GdkGLDrawable *read,
++																	GdkGLContext  *glcontext)
++{
++	NSOpenGLContext *quartzContext = GDK_GL_CONTEXT_IMPL_QUARTZ(glcontext)->quartzContext; 
++	[quartzContext makeCurrentContext];
++	return TRUE;
++}
++
++static gboolean      gdk_gl_window_impl_quartz_gl_begin            (GdkGLDrawable *draw,
++																   GdkGLDrawable *read,
++																   GdkGLContext  *glcontext)
++{
++	NSOpenGLContext *quartzContext = GDK_GL_CONTEXT_IMPL_QUARTZ(glcontext)->quartzContext; 
++	NSView			*view = GDK_GL_WINDOW_IMPL_QUARTZ (draw)->quartzView;
++	gboolean		ret=gdk_gl_window_impl_quartz_make_context_current (draw, read, glcontext);
++	if (([quartzContext view] != view) && ![view isHidden]) {
++        [quartzContext setView:view];
++    }
++	return ret;
++}
++
++static void
++gdk_gl_window_impl_quartz_gl_end (GdkGLDrawable *gldrawable)
++{
++	/* do nothing */
++}
++
++static GdkGLConfig *
++gdk_gl_window_impl_quartz_get_gl_config (GdkGLDrawable *gldrawable)
++{
++	g_return_val_if_fail (GDK_IS_GL_WINDOW_IMPL_QUARTZ(gldrawable), NULL);
++	
++	return GDK_GL_WINDOW_IMPL_QUARTZ (gldrawable)->glconfig;
++}
+\ No newline at end of file
+diff --git a/gdk/quartz/gdkglwindow-quartz.h b/gdk/quartz/gdkglwindow-quartz.h
+new file mode 100644
+index 0000000..9b664ee
+--- /dev/null
++++ b/gdk/quartz/gdkglwindow-quartz.h
+@@ -0,0 +1,41 @@
++#ifndef __GDK_GL_WINDOW_QUARTZ_H__
++#define __GDK_GL_WINDOW_QUARTZ_H__
++
++#include <gdk/gdkglwindow.h>
++#include <gdk/quartz/gdkglquartz.h>
++
++G_BEGIN_DECLS
++										     
++typedef struct _GdkGLWindowImplQuartz      GdkGLWindowImplQuartz;
++	typedef struct _GdkGLWindowImplQuartzClass GdkGLWindowImplQuartzClass;
++	
++#define GDK_TYPE_GL_WINDOW_IMPL_QUARTZ              (gdk_gl_window_impl_quartz_get_type ())
++#define GDK_GL_WINDOW_IMPL_QUARTZ(object)           (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_GL_WINDOW_IMPL_QUARTZ, GdkGLWindowImplQuartz))
++#define GDK_GL_WINDOW_IMPL_QUARTZ_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), GDK_TYPE_GL_WINDOW_IMPL_QUARTZ, GdkGLWindowImplQuartzClass))
++#define GDK_IS_GL_WINDOW_IMPL_QUARTZ(object)        (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_GL_WINDOW_IMPL_QUARTZ))
++#define GDK_IS_GL_WINDOW_IMPL_QUARTZ_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), GDK_TYPE_GL_WINDOW_IMPL_QUARTZ))
++#define GDK_GL_WINDOW_IMPL_QUARTZ_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), GDK_TYPE_GL_WINDOW_IMPL_QUARTZ, GdkGLWindowImplQuartzClass))
++	
++	struct _GdkGLWindowImplQuartz
++	{
++		GdkGLWindow parent_instance;
++		
++		NSView				*quartzView;
++		NSOpenGLContext		*quartzContext;
++		
++		GdkGLConfig *glconfig;
++		
++		guint is_destroyed : 1;
++	};
++
++struct _GdkGLWindowImplQuartzClass
++{
++	GdkGLWindowClass parent_class;
++};
++
++GType gdk_gl_window_impl_quartz_get_type (void);
++
++G_END_DECLS
++
++
++#endif
+\ No newline at end of file
+-- 
+2.20.1
+
